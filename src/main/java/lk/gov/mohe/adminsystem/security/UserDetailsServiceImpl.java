@@ -1,0 +1,34 @@
+package lk.gov.mohe.adminsystem.security;
+
+import lk.gov.mohe.adminsystem.user.User;
+import lk.gov.mohe.adminsystem.user.UserRepository;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+
+import java.util.Collection;
+
+@Service
+public class UserDetailsServiceImpl implements UserDetailsService {
+    private final UserRepository userRepository;
+
+    public UserDetailsServiceImpl(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User user = userRepository.findByUsername(username);
+        if (user == null) {
+            throw new UsernameNotFoundException("User not found: " + username);
+        }
+        Collection<? extends GrantedAuthority> authorities = user
+            .getRole().getPermissions().stream()
+            .map(permission -> (GrantedAuthority) permission::getName)
+            .toList();
+        return new UserDetailsImpl(user.getUsername(), user.getPassword(), authorities);
+    }
+
+}

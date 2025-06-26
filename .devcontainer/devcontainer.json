@@ -1,0 +1,16 @@
+{
+  "name": "Backend",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "devcontainer",
+  "workspaceFolder": "/workspace",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-java-pack",
+        "vmware.vscode-boot-dev-pack",
+        "postman.postman-for-vscode",
+        "esbenp.prettier-vscode"
+      ]
+    }
+  }
+}

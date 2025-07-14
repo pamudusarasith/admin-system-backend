@@ -1,4 +1,4 @@
-package lk.gov.mohe.adminsystem.permission;
+package lk.gov.mohe.adminsystem.division;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -13,10 +13,10 @@ import org.hibernate.annotations.ColumnDefault;
 @Getter
 @Setter
 @Entity
-@Table(name = "permissions")
-public class Permission {
+@Table(name = "divisions")
+public class Division {
     @Id
-    @ColumnDefault("nextval('permissions_id_seq')")
+    @ColumnDefault("nextval('divisions_id_seq')")
     @Column(name = "id", nullable = false)
     private Integer id;
 

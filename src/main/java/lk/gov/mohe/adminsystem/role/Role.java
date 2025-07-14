@@ -8,37 +8,31 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
-import java.time.Instant;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "role")
+@Table(name = "roles")
 public class Role {
     @Id
+    @ColumnDefault("nextval('roles_id_seq')")
     @Column(name = "id", nullable = false)
-    private Long id;
+    private Integer id;
 
-    @Size(max = 255)
+    @Size(max = 50)
     @NotNull
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false, length = 50)
     private String name;
 
-    @Size(max = 255)
-    @Column(name = "description")
+    @Column(name = "description", length = Integer.MAX_VALUE)
     private String description;
 
-    @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "created_at")
-    private Instant createdAt;
-
-    @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "updated_at")
-    private Instant updatedAt;
-
-    @ManyToMany(mappedBy = "roles")
+    @ManyToMany
+    @JoinTable(name = "role_permissions",
+        joinColumns = @JoinColumn(name = "role_id"),
+        inverseJoinColumns = @JoinColumn(name = "permission_id"))
     private Set<Permission> permissions = new LinkedHashSet<>();
 
 }

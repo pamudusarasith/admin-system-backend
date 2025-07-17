@@ -1,7 +1,7 @@
 HELP.md
 .gradle
 .env
-application.properties
+./application.properties
 /src/main/resources/keys/jwt.key
 /src/main/resources/keys/jwt.pub
 build/

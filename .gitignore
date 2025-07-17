@@ -1,13 +1,14 @@
 HELP.md
 .gradle
 .env
-./application.properties
+/application.properties
 /src/main/resources/keys/jwt.key
 /src/main/resources/keys/jwt.pub
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
+/logs/
 
 ### STS ###
 .apt_generated

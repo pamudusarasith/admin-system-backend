@@ -17,7 +17,7 @@ import java.util.Set;
 @Table(name = "roles")
 public class Role {
     @Id
-    @ColumnDefault("nextval('roles_id_seq')")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Integer id;
 

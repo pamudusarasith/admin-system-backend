@@ -36,7 +36,7 @@ public class Letter {
     @Column(name = "sent_date")
     private LocalDate sentDate;
 
-    @Column(name = "received_date")
+    @Column(name = "received_date", nullable = false)
     private LocalDate receivedDate;
 
     @Enumerated(EnumType.STRING)
@@ -54,7 +54,7 @@ public class Letter {
 
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-    @ColumnDefault("'Normal'")
+    @ColumnDefault("'NORMAL'")
     @Column(name = "priority", nullable = false)
     private PriorityEnum priority;
 

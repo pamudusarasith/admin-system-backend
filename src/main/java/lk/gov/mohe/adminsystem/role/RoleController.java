@@ -37,7 +37,7 @@ public class RoleController {
         return ResponseEntity.ok("Role created successfully");
     }
 
-    @PostMapping("/roles/{id}")
+    @PutMapping("/roles/{id}")
     public ResponseEntity<?> updateRole(
             @PathVariable Long id,
             @Valid @RequestBody CreateRoleRequest request) {
@@ -51,6 +51,11 @@ public class RoleController {
                     return ResponseEntity.ok("Role updated successfully");
                 })
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/roles")
+    public ResponseEntity<?> getAllRoles() {
+        return ResponseEntity.ok(roleRepository.findAll());
     }
 
 

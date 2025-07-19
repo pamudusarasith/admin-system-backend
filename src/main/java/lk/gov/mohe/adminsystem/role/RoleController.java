@@ -11,7 +11,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-
 @RestController
 @RequiredArgsConstructor
 
@@ -37,7 +36,7 @@ public class RoleController {
         return ResponseEntity.ok("Role created successfully");
     }
 
-    @PostMapping("/roles/{id}")
+    @PutMapping("/roles/{id}")
     public ResponseEntity<?> updateRole(
             @PathVariable Long id,
             @Valid @RequestBody CreateRoleRequest request) {
@@ -45,7 +44,8 @@ public class RoleController {
                 .map(role -> {
                     role.setName(request.name());
                     role.setDescription(request.description());
-                    Set<Permission> permissions = new HashSet<>(permissionRepository.findAllByNameIsIn(request.permissions()));
+                    Set<Permission> permissions = new HashSet<>(
+                            permissionRepository.findAllByNameIsIn(request.permissions()));
                     role.setPermissions(permissions);
                     roleRepository.save(role);
                     return ResponseEntity.ok("Role updated successfully");
@@ -53,8 +53,13 @@ public class RoleController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-@DeleteMapping ("/roles/{id}")
-public ResponseEntity <?> deleteRole(@PathVariable Long id) {
+    @GetMapping("/roles")
+    public ResponseEntity<?> getAllRoles() {
+        return ResponseEntity.ok(roleRepository.findAll());
+    }
+
+    @DeleteMapping("/roles/{id}")
+    public ResponseEntity<?> deleteRole(@PathVariable Long id) {
         return roleRepository.findById(id)
                 .map(role -> {
                     roleRepository.delete(role);
@@ -63,14 +68,9 @@ public ResponseEntity <?> deleteRole(@PathVariable Long id) {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-
-
     public record CreateRoleRequest(
             String name,
             String description,
-            List<String> permissions
-    ) {}
+            List<String> permissions) {
+    }
 }
-
-
-

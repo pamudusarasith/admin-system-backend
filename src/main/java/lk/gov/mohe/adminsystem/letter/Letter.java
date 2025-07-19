@@ -8,6 +8,7 @@ import lk.gov.mohe.adminsystem.user.User;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -55,6 +56,7 @@ public class Letter {
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @ColumnDefault("'NORMAL'")
+    @Generated
     @Column(name = "priority", nullable = false)
     private PriorityEnum priority;
 
@@ -72,6 +74,7 @@ public class Letter {
     private User assignedUser;
 
     @ColumnDefault("false")
+    @Generated
     @Column(name = "is_accepted_by_user")
     private Boolean isAcceptedByUser;
 }

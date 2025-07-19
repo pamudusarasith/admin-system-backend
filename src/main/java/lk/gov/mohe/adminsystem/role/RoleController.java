@@ -53,6 +53,16 @@ public class RoleController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+@DeleteMapping ("/roles/{id}")
+public ResponseEntity <?> deleteRole(@PathVariable Long id) {
+        return roleRepository.findById(id)
+                .map(role -> {
+                    roleRepository.delete(role);
+                    return ResponseEntity.ok("Role deleted successfully");
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
 
 
     public record CreateRoleRequest(

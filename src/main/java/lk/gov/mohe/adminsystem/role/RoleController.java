@@ -37,10 +37,30 @@ public class RoleController {
         return ResponseEntity.ok("Role created successfully");
     }
 
+    @PostMapping("/roles/{id}")
+    public ResponseEntity<?> updateRole(
+            @PathVariable Long id,
+            @Valid @RequestBody CreateRoleRequest request) {
+        return roleRepository.findById(id)
+                .map(role -> {
+                    role.setName(request.name());
+                    role.setDescription(request.description());
+                    Set<Permission> permissions = new HashSet<>(permissionRepository.findAllByNameIsIn(request.permissions()));
+                    role.setPermissions(permissions);
+                    roleRepository.save(role);
+                    return ResponseEntity.ok("Role updated successfully");
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+
+
     public record CreateRoleRequest(
             String name,
             String description,
             List<String> permissions
     ) {}
 }
+
+
 

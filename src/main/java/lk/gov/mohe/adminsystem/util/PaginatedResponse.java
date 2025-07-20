@@ -5,15 +5,15 @@ import org.springframework.data.domain.Page;
 
 import java.util.List;
 
-public class PaginatedResponse<T> {
-    public final List<T> data;
-    @JsonProperty("pagination")
-    public final PaginationDetails paginationDetails;
-
+public record PaginatedResponse<T>(
+    @JsonProperty("data") List<T> data,
+    @JsonProperty("pagination") PaginationDetails paginationDetails
+) {
     public PaginatedResponse(Page<T> page) {
-        this.data = page.getContent();
-        this.paginationDetails = new PaginationDetails(page.getNumber(), page.getSize(),
-            page.getTotalPages());
+        this(
+            page.getContent(),
+            new PaginationDetails(page.getNumber(), page.getSize(), page.getTotalPages())
+        );
     }
 
     public record PaginationDetails(int page, int itemsPerPage, int totalPages) {

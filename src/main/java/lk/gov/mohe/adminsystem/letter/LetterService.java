@@ -22,8 +22,26 @@ public class LetterService {
         return new PaginatedResponse<>(lettersPage);
     }
 
-    public Letter createLetter(CreateLetterRequestDto request) {
+    public Letter createLetter(CreateOrUpdateLetterRequestDto request) {
         Letter letter = new Letter();
+        setLetterParameters(request, letter);
+        letter.setStatus(StatusEnum.NEW);
+
+        return letterRepository.save(letter);
+    }
+
+    public void updateLetter(Integer id, CreateOrUpdateLetterRequestDto request) {
+        Letter letter = letterRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Letter not found with id: "
+                + id));
+
+        setLetterParameters(request, letter);
+
+        letterRepository.save(letter);
+    }
+
+    private void setLetterParameters(CreateOrUpdateLetterRequestDto request,
+                                     Letter letter) {
         letter.setReference(request.reference());
         letter.setSenderDetails(request.senderDetails().toMap());
         letter.setSentDate(request.sentDate() != null ?
@@ -33,8 +51,5 @@ public class LetterService {
         letter.setSubject(request.subject());
         letter.setContent(request.content());
         letter.setPriority(request.priority());
-        letter.setStatus(StatusEnum.NEW);
-
-        return letterRepository.save(letter);
     }
 }

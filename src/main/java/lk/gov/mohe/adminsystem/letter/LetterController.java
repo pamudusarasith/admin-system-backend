@@ -23,8 +23,17 @@ public class LetterController {
     }
 
     @PostMapping("/letters")
-    public ResponseEntity<String> createLetter(@Valid @RequestBody CreateLetterRequestDto request) {
+    public ResponseEntity<String> createLetter(@Valid @RequestBody CreateOrUpdateLetterRequestDto request) {
         Letter letter = letterService.createLetter(request);
         return ResponseEntity.created(URI.create("/letters/" + letter.getId())).build();
+    }
+
+    @PutMapping("/letters/{id}")
+    public ResponseEntity<String> updateLetter(
+        @PathVariable Integer id,
+        @Valid @RequestBody CreateOrUpdateLetterRequestDto request
+    ) {
+        letterService.updateLetter(id, request);
+        return ResponseEntity.ok("");
     }
 }

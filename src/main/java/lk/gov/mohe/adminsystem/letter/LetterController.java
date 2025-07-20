@@ -1,23 +1,39 @@
 package lk.gov.mohe.adminsystem.letter;
 
+import jakarta.validation.Valid;
+import lk.gov.mohe.adminsystem.util.PaginatedResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.net.URI;
 
 @RestController
 @RequiredArgsConstructor
 public class LetterController {
+    private final LetterService letterService;
+
     @GetMapping("/letters")
-    public ResponseEntity<String> getLetters() {
-        // This method will return a list of letters
-        return ResponseEntity.ok("List of letters will be here");
+    public ResponseEntity<PaginatedResponse<Letter>> getLetters(
+        @RequestParam(name = "p", required = false, defaultValue = "0") Integer page,
+        @RequestParam(name = "ipp", required = false, defaultValue = "10") Integer pageSize
+    ) {
+        PaginatedResponse<Letter> response = letterService.getLetters(page, pageSize);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/letters")
-    public ResponseEntity<String> createLetter() {
-        // This method will create a new letter
-        return ResponseEntity.ok("Letter created successfully");
+    public ResponseEntity<String> createLetter(@Valid @RequestBody CreateOrUpdateLetterRequestDto request) {
+        Letter letter = letterService.createLetter(request);
+        return ResponseEntity.created(URI.create("/letters/" + letter.getId())).build();
+    }
+
+    @PutMapping("/letters/{id}")
+    public ResponseEntity<String> updateLetter(
+        @PathVariable Integer id,
+        @Valid @RequestBody CreateOrUpdateLetterRequestDto request
+    ) {
+        letterService.updateLetter(id, request);
+        return ResponseEntity.ok("");
     }
 }

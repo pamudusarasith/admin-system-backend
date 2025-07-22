@@ -13,6 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequiredArgsConstructor
@@ -82,6 +83,14 @@ public class UserController {
 
         userRepository.deleteById(id);
         return ResponseEntity.ok("User deleted successfully");
+    }
+
+    @GetMapping("/users/{id}")
+    @PreAuthorize("hasAuthority('user:read')")
+    public ResponseEntity<User> getUserById(@PathVariable Integer id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        return ResponseEntity.ok(user);
     }
 
 }

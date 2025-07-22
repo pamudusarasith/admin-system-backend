@@ -3,8 +3,10 @@ package lk.gov.mohe.adminsystem.letter;
 import jakarta.validation.Valid;
 import lk.gov.mohe.adminsystem.util.PaginatedResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.net.URI;
 
@@ -22,9 +24,12 @@ public class LetterController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/letters")
-    public ResponseEntity<String> createLetter(@Valid @RequestBody CreateOrUpdateLetterRequestDto request) {
-        Letter letter = letterService.createLetter(request);
+    @PostMapping(value = "/letters", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> createLetter(
+        @Valid @RequestPart("details") CreateOrUpdateLetterRequestDto request,
+        @RequestPart("attachments") MultipartFile[] attachments
+    ) {
+        Letter letter = letterService.createLetter(request, attachments);
         return ResponseEntity.created(URI.create("/letters/" + letter.getId())).build();
     }
 

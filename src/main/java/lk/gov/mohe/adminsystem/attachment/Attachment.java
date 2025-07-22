@@ -1,0 +1,59 @@
+package lk.gov.mohe.adminsystem.attachment;
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
+import java.time.OffsetDateTime;
+
+@Getter
+@Setter
+@Entity
+@Table(name = "attachments")
+public class Attachment {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
+    private Integer id;
+
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "parent_type", nullable = false)
+    private ParentTypeEnum parentType;
+
+    @NotNull
+    @Column(name = "parent_id", nullable = false)
+    private Integer parentId;
+
+    @Size(max = 255)
+    @NotNull
+    @Column(name = "file_name", nullable = false)
+    private String fileName;
+
+    @Size(max = 255)
+    @NotNull
+    @Column(name = "file_path", nullable = false)
+    private String filePath;
+
+    @Size(max = 50)
+    @Column(name = "file_type", length = 50)
+    private String fileType;
+
+    @ColumnDefault("now()")
+    @Column(name = "created_at")
+    private OffsetDateTime createdAt;
+
+    @ColumnDefault("now()")
+    @Column(name = "updated_at")
+    private OffsetDateTime updatedAt;
+
+    public void attachToParent(AttachmentParent parent) {
+        this.parentType = parent.getType();
+        this.parentId = parent.getId();
+    }
+}

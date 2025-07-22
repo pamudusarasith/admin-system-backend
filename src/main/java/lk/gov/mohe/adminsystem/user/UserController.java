@@ -12,10 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequiredArgsConstructor
@@ -50,7 +48,49 @@ public class UserController {
     }
 
     public record CreateUserRequest(@Size(min = 6, max = 50) String username,
-                                    @Size(min = 6, max = 50) String password,
+                                    @Size(min = 6, max = 50) String password, 
                                     @Email String email, @NotEmpty String role) {
     }
+
+    @PutMapping("/users/{id}")
+    @PreAuthorize("hasAuthority('user:update')")
+    public ResponseEntity<String> updateUser(@PathVariable Integer id,
+                                             @Valid @RequestBody CreateUserRequest createUserRequest) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + id));
+
+        user.setUsername(createUserRequest.username());
+        user.setEmail(createUserRequest.email());
+
+        if (createUserRequest.password() != null && !createUserRequest.password().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(createUserRequest.password()));
+        }
+
+        Role role = roleRepository.findByName(createUserRequest.role())
+                .orElseThrow(() -> new IllegalArgumentException("Role not found: " + createUserRequest.role()));
+        user.setRole(role);
+
+        userRepository.save(user);
+        return ResponseEntity.ok("User updated successfully");
+    }
+
+    @DeleteMapping("/users/{id}")
+    @PreAuthorize("hasAuthority('user:delete')")
+    public ResponseEntity<String> deleteUser(@PathVariable Integer id) {
+        if (!userRepository.existsById(id)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+
+        userRepository.deleteById(id);
+        return ResponseEntity.ok("User deleted successfully");
+    }
+
+    @GetMapping("/users/{id}")
+    @PreAuthorize("hasAuthority('user:read')")
+    public ResponseEntity<User> getUserById(@PathVariable Integer id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        return ResponseEntity.ok(user);
+    }
+
 }

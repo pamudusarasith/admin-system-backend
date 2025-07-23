@@ -54,7 +54,7 @@ public class UserController {
     }
 
     public record CreateUserRequest(@Size(min = 6, max = 50) String username,
-                                    @Size(min = 6, max = 50) String password, 
+                                    @Size(min = 6, max = 50) String password,
                                     @Email String email, @NotEmpty String role,
                                     @NotEmpty String division) {
     }
@@ -62,24 +62,31 @@ public class UserController {
     @PutMapping("/users/{id}")
     @PreAuthorize("hasAuthority('user:update')")
     public ResponseEntity<String> updateUser(@PathVariable Integer id,
-                                             @Valid @RequestBody CreateUserRequest createUserRequest) {
+                                             @Valid @RequestBody UpdateUserRequest request) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + id));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        user.setUsername(createUserRequest.username());
-        user.setEmail(createUserRequest.email());
+        user.setUsername(request.username());
+        user.setEmail(request.email());
 
-        if (createUserRequest.password() != null && !createUserRequest.password().isEmpty()) {
-            user.setPassword(passwordEncoder.encode(createUserRequest.password()));
+        if (request.password() != null && !request.password().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(request.password()));
         }
 
-        Role role = roleRepository.findByName(createUserRequest.role())
-                .orElseThrow(() -> new IllegalArgumentException("Role not found: " + createUserRequest.role()));
+        Role role = roleRepository.findByName(request.role())
+                .orElseThrow(() -> new IllegalArgumentException("Role not found"));
         user.setRole(role);
 
         userRepository.save(user);
         return ResponseEntity.ok("User updated successfully");
     }
+
+    public record UpdateUserRequest(
+            @Size(min = 6, max = 50) String username,
+            @Email String email,
+            @Size(min = 6)String password,
+            @NotEmpty String role
+    ) {}
 
     @DeleteMapping("/users/{id}")
     @PreAuthorize("hasAuthority('user:delete')")

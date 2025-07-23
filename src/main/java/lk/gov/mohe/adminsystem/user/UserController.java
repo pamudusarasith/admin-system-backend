@@ -4,6 +4,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
+import lk.gov.mohe.adminsystem.division.Division;
+import lk.gov.mohe.adminsystem.division.DivisionRepository;
 import lk.gov.mohe.adminsystem.role.Role;
 import lk.gov.mohe.adminsystem.role.RoleRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,7 @@ public class UserController {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final DivisionRepository divisionRepository;
 
     @GetMapping("/users")
     @PreAuthorize("hasAuthority('user:read')")
@@ -35,7 +38,7 @@ public class UserController {
     @PreAuthorize("hasAuthority('user:create')")
     public ResponseEntity<String> createUser(@Valid @RequestBody CreateUserRequest createUserRequest) {
         String encodedPassword =
-            this.passwordEncoder.encode(createUserRequest.password());
+            this.passwordEncoder.encode("123");
         User user = new User();
         user.setUsername(createUserRequest.username());
         user.setPassword(encodedPassword);
@@ -43,36 +46,47 @@ public class UserController {
         Role role =
             roleRepository.findByName(createUserRequest.role()).orElseThrow(() -> new IllegalArgumentException("Role not found: " + createUserRequest.role()));
         user.setRole(role);
+        Division division =
+                divisionRepository.findByName(createUserRequest.division()).orElseThrow(() -> new IllegalArgumentException("Division not found: " + createUserRequest.division()));
+        user.setDivision(division);
         userRepository.save(user);
         return new ResponseEntity<>(createUserRequest.username(), HttpStatus.CREATED);
     }
 
     public record CreateUserRequest(@Size(min = 6, max = 50) String username,
-                                    @Size(min = 6, max = 50) String password, 
-                                    @Email String email, @NotEmpty String role) {
+//                                    @Size(min = 6, max = 50) String password,
+                                    @Email String email, @NotEmpty String role,
+                                    @NotEmpty String division) {
     }
 
     @PutMapping("/users/{id}")
     @PreAuthorize("hasAuthority('user:update')")
     public ResponseEntity<String> updateUser(@PathVariable Integer id,
-                                             @Valid @RequestBody CreateUserRequest createUserRequest) {
+                                             @Valid @RequestBody UpdateUserRequest request) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + id));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        user.setUsername(createUserRequest.username());
-        user.setEmail(createUserRequest.email());
+        user.setUsername(request.username());
+        user.setEmail(request.email());
 
-        if (createUserRequest.password() != null && !createUserRequest.password().isEmpty()) {
-            user.setPassword(passwordEncoder.encode(createUserRequest.password()));
+        if (request.password() != null && !request.password().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(request.password()));
         }
 
-        Role role = roleRepository.findByName(createUserRequest.role())
-                .orElseThrow(() -> new IllegalArgumentException("Role not found: " + createUserRequest.role()));
+        Role role = roleRepository.findByName(request.role())
+                .orElseThrow(() -> new IllegalArgumentException("Role not found"));
         user.setRole(role);
 
         userRepository.save(user);
         return ResponseEntity.ok("User updated successfully");
     }
+
+    public record UpdateUserRequest(
+            @Size(min = 6, max = 50) String username,
+            @Email String email,
+            @Size(min = 6)String password,
+            @NotEmpty String role
+    ) {}
 
     @DeleteMapping("/users/{id}")
     @PreAuthorize("hasAuthority('user:delete')")

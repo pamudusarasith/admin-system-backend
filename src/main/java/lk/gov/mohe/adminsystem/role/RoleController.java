@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -54,8 +55,19 @@ public class RoleController {
     }
 
     @GetMapping("/roles")
-    public ResponseEntity<?> getAllRoles() {
-        return ResponseEntity.ok(roleRepository.findAll());
+    public ResponseEntity<List<RoleDto>> getAllRoles() {
+        List<Role> roles = roleRepository.findAll();
+        List<RoleDto> roleDtos = new ArrayList<>();
+        for (Role role : roles) {
+            RoleDto roleDto = new RoleDto(
+                    role.getId(),
+                    role.getName(),
+                    role.getDescription(),
+                    role.getPermissions().stream().map(Permission::getName).toList()
+            );
+            roleDtos.add(roleDto);
+        }
+        return ResponseEntity.ok(roleDtos);
     }
 
     @DeleteMapping("/roles/{id}")

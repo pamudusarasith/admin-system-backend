@@ -10,14 +10,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
-
 @Service
 @RequiredArgsConstructor
 public class LetterService {
 
     private final LetterRepository letterRepository;
     private final AttachmentRepository attachmentRepository;
+    private final LetterMapper letterMapper;
 
     public PaginatedResponse<Letter> getLetters(Integer page, Integer pageSize) {
         Pageable pageable = PageRequest.of(page, pageSize);
@@ -29,8 +28,7 @@ public class LetterService {
     public Letter createLetter(CreateOrUpdateLetterRequestDto request,
                                MultipartFile[] attachments) {
 
-        Letter letter = new Letter();
-        setLetterParameters(request, letter);
+        Letter letter = letterMapper.toEntity(request);
         letter.setStatus(StatusEnum.NEW);
         Letter savedLetter = letterRepository.save(letter);
 
@@ -54,21 +52,8 @@ public class LetterService {
             .orElseThrow(() -> new IllegalArgumentException("Letter not found with id: "
                 + id));
 
-        setLetterParameters(request, letter);
+        letterMapper.updateEntityFromCreateOrUpdateLetterRequestDto(request, letter);
 
         letterRepository.save(letter);
-    }
-
-    private void setLetterParameters(CreateOrUpdateLetterRequestDto request,
-                                     Letter letter) {
-        letter.setReference(request.reference());
-        letter.setSenderDetails(request.senderDetails().toMap());
-        letter.setSentDate(request.sentDate() != null ?
-            LocalDate.parse(request.sentDate()) : null);
-        letter.setReceivedDate(LocalDate.parse(request.receivedDate()));
-        letter.setModeOfArrival(request.modeOfArrival());
-        letter.setSubject(request.subject());
-        letter.setContent(request.content());
-        letter.setPriority(request.priority());
     }
 }

@@ -17,8 +17,8 @@ public class LetterController {
 
     @GetMapping("/letters")
     public ResponseEntity<PaginatedResponse<LetterDetailsMinDto>> getLetters(
-        @RequestParam(name = "p", required = false, defaultValue = "0") Integer page,
-        @RequestParam(name = "ipp", required = false, defaultValue = "10") Integer pageSize
+        @RequestParam(required = false, defaultValue = "0") Integer page,
+        @RequestParam(required = false, defaultValue = "10") Integer pageSize
     ) {
         PaginatedResponse<LetterDetailsMinDto> response = letterService.getLetters(page
             , pageSize);

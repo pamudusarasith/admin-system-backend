@@ -1,16 +1,23 @@
 package lk.gov.mohe.adminsystem.letter;
 
+import lk.gov.mohe.adminsystem.attachment.AttachmentRepository;
+import lk.gov.mohe.adminsystem.attachment.ParentTypeEnum;
 import lk.gov.mohe.adminsystem.division.DivisionMapper;
 import lk.gov.mohe.adminsystem.user.UserMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Mapper(componentModel = "spring", uses = {UserMapper.class, DivisionMapper.class})
 public abstract class LetterMapper {
+    @Autowired
+    AttachmentRepository attachmentRepository;
+    ParentTypeEnum letterParentType = ParentTypeEnum.LETTER;
+
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "assignedDivision", ignore = true)
     @Mapping(target = "assignedUser", ignore = true)
@@ -27,6 +34,8 @@ public abstract class LetterMapper {
         CreateOrUpdateLetterRequestDto request, @MappingTarget Letter letter
     );
 
+    @Mapping(target = "noOfAttachments", expression = "java( attachmentRepository" +
+        ".countByParentIdAndParentType(letter.getId(), letterParentType) )")
     abstract LetterDetailsMinDto toLetterDetailsMinDto(Letter letter);
 
     SenderDetailsDto toSenderDetailsDto(Map<String, Object> senderDetails) {

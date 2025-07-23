@@ -9,8 +9,6 @@ import lk.gov.mohe.adminsystem.division.Division;
 import lk.gov.mohe.adminsystem.user.User;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -57,8 +55,8 @@ public class Letter implements AttachmentParent {
 
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-    @ColumnDefault("'NORMAL'")
-    @Column(name = "priority", nullable = false)
+    @Column(name = "priority", nullable = false, columnDefinition = "priority_enum " +
+        "DEFAULT 'NORMAL' NOT NULL")
     private PriorityEnum priority;
 
     @Enumerated(EnumType.STRING)
@@ -74,9 +72,7 @@ public class Letter implements AttachmentParent {
     @JoinColumn(name = "assigned_user_id")
     private User assignedUser;
 
-    @ColumnDefault("false")
-    @Generated
-    @Column(name = "is_accepted_by_user")
+    @Column(name = "is_accepted_by_user", columnDefinition = "BOOLEAN DEFAULT FALSE")
     private Boolean isAcceptedByUser;
 
     public ParentTypeEnum getType() {

@@ -39,7 +39,7 @@ public class RoleController {
 
     @PutMapping("/roles/{id}")
     public ResponseEntity<?> updateRole(
-            @PathVariable Long id,
+            @PathVariable Integer id,
             @Valid @RequestBody CreateRoleRequest request) {
         return roleRepository.findById(id)
                 .map(role -> {
@@ -71,7 +71,7 @@ public class RoleController {
     }
 
     @DeleteMapping("/roles/{id}")
-    public ResponseEntity<?> deleteRole(@PathVariable Long id) {
+    public ResponseEntity<?> deleteRole(@PathVariable Integer id) {
         return roleRepository.findById(id)
                 .map(role -> {
                     roleRepository.delete(role);

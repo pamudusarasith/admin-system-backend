@@ -3,6 +3,7 @@ package lk.gov.mohe.adminsystem.user;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lk.gov.mohe.adminsystem.division.Division;
 import lk.gov.mohe.adminsystem.division.DivisionRepository;
@@ -12,10 +13,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,13 +27,14 @@ public class UserController {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final DivisionRepository divisionRepository;
+    private final UserMapper userMapper;
 
     @GetMapping("/users")
     @PreAuthorize("hasAuthority('user:read')")
-    public ResponseEntity<String> getUsers(Authentication authentication) {
-        // This method will return a list of users
-        // For now, we can return a placeholder response
-        return ResponseEntity.ok("List of users will be here ");
+    public ResponseEntity<List<UserDto>> getUsers() {
+        List<User> users = userRepository.findAll();
+        List<UserDto> userDtos = users.stream().map(userMapper::toUserDto).toList();
+        return ResponseEntity.ok(userDtos);
     }
 
     @PostMapping("/users")
@@ -44,10 +47,10 @@ public class UserController {
         user.setPassword(encodedPassword);
         user.setEmail(createUserRequest.email());
         Role role =
-            roleRepository.findByName(createUserRequest.role()).orElseThrow(() -> new IllegalArgumentException("Role not found: " + createUserRequest.role()));
+            roleRepository.findById(createUserRequest.roleId()).orElseThrow(() -> new IllegalArgumentException("Role not found: " + createUserRequest.roleId()));
         user.setRole(role);
         Division division =
-                divisionRepository.findByName(createUserRequest.division()).orElseThrow(() -> new IllegalArgumentException("Division not found: " + createUserRequest.division()));
+            divisionRepository.findById(createUserRequest.divisionId()).orElseThrow(() -> new IllegalArgumentException("Division not found: " + createUserRequest.divisionId()));
         user.setDivision(division);
         userRepository.save(user);
         return new ResponseEntity<>(createUserRequest.username(), HttpStatus.CREATED);
@@ -55,8 +58,8 @@ public class UserController {
 
     public record CreateUserRequest(@Size(min = 6, max = 50) String username,
 //                                    @Size(min = 6, max = 50) String password,
-                                    @Email String email, @NotEmpty String role,
-                                    @NotEmpty String division) {
+                                    @Email String email, @NotNull Integer roleId,
+                                    @NotNull Integer divisionId) {
     }
 
     @PutMapping("/users/{id}")

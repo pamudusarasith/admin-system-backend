@@ -7,7 +7,6 @@ import lk.gov.mohe.adminsystem.division.Division;
 import lk.gov.mohe.adminsystem.role.Role;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.ColumnDefault;
 
 import java.time.OffsetDateTime;
 
@@ -36,8 +35,8 @@ public class User {
     private String password;
 
     @Size(max = 100)
-    @ColumnDefault("'New User'")
-    @Column(name = "full_name", length = 100)
+    @Column(name = "full_name", length = 100, columnDefinition = "VARCHAR(100) DEFAULT " +
+        "'New User'")
     private String fullName;
 
     @Size(max = 20)
@@ -54,20 +53,16 @@ public class User {
     @JoinColumn(name = "division_id", nullable = false)
     private Division division;
 
-    @ColumnDefault("true")
-    @Column(name = "is_active")
+    @Column(name = "is_active", columnDefinition = "BOOLEAN DEFAULT TRUE")
     private Boolean isActive;
 
-    @ColumnDefault("true")
-    @Column(name = "account_setup_required")
+    @Column(name = "account_setup_required", columnDefinition = "BOOLEAN DEFAULT TRUE")
     private Boolean accountSetupRequired;
 
-    @ColumnDefault("now()")
-    @Column(name = "created_at")
+    @Column(name = "created_at", columnDefinition = "TIMESTAMPTZ DEFAULT now()")
     private OffsetDateTime createdAt;
 
-    @ColumnDefault("now()")
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", columnDefinition = "TIMESTAMPTZ DEFAULT now()")
     private OffsetDateTime updatedAt;
 
 }

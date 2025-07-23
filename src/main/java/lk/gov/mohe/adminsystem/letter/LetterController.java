@@ -16,11 +16,12 @@ public class LetterController {
     private final LetterService letterService;
 
     @GetMapping("/letters")
-    public ResponseEntity<PaginatedResponse<Letter>> getLetters(
+    public ResponseEntity<PaginatedResponse<LetterDetailsMinDto>> getLetters(
         @RequestParam(name = "p", required = false, defaultValue = "0") Integer page,
         @RequestParam(name = "ipp", required = false, defaultValue = "10") Integer pageSize
     ) {
-        PaginatedResponse<Letter> response = letterService.getLetters(page, pageSize);
+        PaginatedResponse<LetterDetailsMinDto> response = letterService.getLetters(page
+            , pageSize);
         return ResponseEntity.ok(response);
     }
 

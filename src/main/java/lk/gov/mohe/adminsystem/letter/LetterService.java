@@ -18,9 +18,11 @@ public class LetterService {
     private final AttachmentRepository attachmentRepository;
     private final LetterMapper letterMapper;
 
-    public PaginatedResponse<Letter> getLetters(Integer page, Integer pageSize) {
+    public PaginatedResponse<LetterDetailsMinDto> getLetters(Integer page,
+                                                             Integer pageSize) {
         Pageable pageable = PageRequest.of(page, pageSize);
-        Page<Letter> lettersPage = letterRepository.findAll(pageable);
+        Page<LetterDetailsMinDto> lettersPage =
+            letterRepository.findAll(pageable).map(letterMapper::toLetterDetailsMinDto);
 
         return new PaginatedResponse<>(lettersPage);
     }

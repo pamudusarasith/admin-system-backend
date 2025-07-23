@@ -7,5 +7,5 @@ import org.mapstruct.Mapping;
 public interface UserMapper {
     @Mapping(target = "role", source = "role.name")
     @Mapping(target = "division", source = "division.name")
-    UserDto userToUserDto(User user);
+    UserDto toUserDto(User user);
 }

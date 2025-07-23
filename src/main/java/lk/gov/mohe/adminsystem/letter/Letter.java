@@ -58,7 +58,6 @@ public class Letter implements AttachmentParent {
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @ColumnDefault("'NORMAL'")
-    @Generated
     @Column(name = "priority", nullable = false)
     private PriorityEnum priority;
 

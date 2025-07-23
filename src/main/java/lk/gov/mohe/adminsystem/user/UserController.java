@@ -38,7 +38,7 @@ public class UserController {
     @PreAuthorize("hasAuthority('user:create')")
     public ResponseEntity<String> createUser(@Valid @RequestBody CreateUserRequest createUserRequest) {
         String encodedPassword =
-            this.passwordEncoder.encode(createUserRequest.password());
+            this.passwordEncoder.encode("123");
         User user = new User();
         user.setUsername(createUserRequest.username());
         user.setPassword(encodedPassword);
@@ -54,7 +54,7 @@ public class UserController {
     }
 
     public record CreateUserRequest(@Size(min = 6, max = 50) String username,
-                                    @Size(min = 6, max = 50) String password,
+//                                    @Size(min = 6, max = 50) String password,
                                     @Email String email, @NotEmpty String role,
                                     @NotEmpty String division) {
     }

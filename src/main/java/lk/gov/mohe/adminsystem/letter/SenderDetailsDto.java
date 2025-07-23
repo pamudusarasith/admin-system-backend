@@ -15,12 +15,4 @@ public record SenderDetailsDto(
 
     String phoneNumber
 ) {
-    public Map<String, Object> toMap() {
-        Map<String, Object> map = new HashMap<>();
-        map.put("name", name);
-        map.put("address", address);
-        map.put("email", email);
-        map.put("phone_number", phoneNumber);
-        return map;
-    }
 }

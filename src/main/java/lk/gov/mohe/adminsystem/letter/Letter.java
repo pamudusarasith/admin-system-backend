@@ -3,6 +3,8 @@ package lk.gov.mohe.adminsystem.letter;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lk.gov.mohe.adminsystem.attachment.AttachmentParent;
+import lk.gov.mohe.adminsystem.attachment.ParentTypeEnum;
 import lk.gov.mohe.adminsystem.division.Division;
 import lk.gov.mohe.adminsystem.user.User;
 import lombok.Getter;
@@ -19,7 +21,7 @@ import java.util.Map;
 @Setter
 @Entity
 @Table(name = "letters")
-public class Letter {
+public class Letter implements AttachmentParent {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
@@ -77,4 +79,8 @@ public class Letter {
     @Generated
     @Column(name = "is_accepted_by_user")
     private Boolean isAcceptedByUser;
+
+    public ParentTypeEnum getType() {
+        return ParentTypeEnum.LETTER;
+    }
 }

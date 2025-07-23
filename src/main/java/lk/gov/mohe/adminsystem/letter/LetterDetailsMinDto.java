@@ -12,10 +12,11 @@ public record LetterDetailsMinDto(
     ModeOfArrivalEnum modeOfArrival,
     String subject,
     String content,
-    PriorityEnum priority,
-    StatusEnum status,
+    String priority,
+    String status,
     DivisionDto assignedDivision,
     UserDto assignedUser,
-    Boolean isAcceptedByUser
+    Boolean isAcceptedByUser,
+    Long noOfAttachments
 ) {
 }

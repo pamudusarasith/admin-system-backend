@@ -4,6 +4,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
+import lk.gov.mohe.adminsystem.division.Division;
+import lk.gov.mohe.adminsystem.division.DivisionRepository;
 import lk.gov.mohe.adminsystem.role.Role;
 import lk.gov.mohe.adminsystem.role.RoleRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,7 @@ public class UserController {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final DivisionRepository divisionRepository;
 
     @GetMapping("/users")
     @PreAuthorize("hasAuthority('user:read')")
@@ -43,13 +46,17 @@ public class UserController {
         Role role =
             roleRepository.findByName(createUserRequest.role()).orElseThrow(() -> new IllegalArgumentException("Role not found: " + createUserRequest.role()));
         user.setRole(role);
+        Division division =
+                divisionRepository.findByName(createUserRequest.division()).orElseThrow(() -> new IllegalArgumentException("Division not found: " + createUserRequest.division()));
+        user.setDivision(division);
         userRepository.save(user);
         return new ResponseEntity<>(createUserRequest.username(), HttpStatus.CREATED);
     }
 
     public record CreateUserRequest(@Size(min = 6, max = 50) String username,
                                     @Size(min = 6, max = 50) String password, 
-                                    @Email String email, @NotEmpty String role) {
+                                    @Email String email, @NotEmpty String role,
+                                    @NotEmpty String division) {
     }
 
     @PutMapping("/users/{id}")

@@ -1,9 +1,6 @@
 package lk.gov.mohe.adminsystem.division;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -16,7 +13,7 @@ import org.hibernate.annotations.ColumnDefault;
 @Table(name = "divisions")
 public class Division {
     @Id
-    @ColumnDefault("nextval('divisions_id_seq')")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Integer id;
 

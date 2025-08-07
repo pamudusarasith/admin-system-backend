@@ -7,6 +7,7 @@ public record LetterDetailsMinDto(
     Integer id,
     String reference,
     SenderDetailsDto senderDetails,
+    ReceiverDetailsDto receiverDetails,
     String sentDate,
     String receivedDate,
     ModeOfArrivalEnum modeOfArrival,

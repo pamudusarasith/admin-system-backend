@@ -27,8 +27,8 @@ public class AuthController {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    @Value("${jwt.lifetime}")
-    private Long jwtLifetime;
+    @Value("${custom.jwt.access-token-validity-seconds}")
+    private Long accessTokenValiditySeconds;
 
     @PostMapping("/login")
     public ResponseEntity<TokenResponse> login(@RequestBody LoginRequest loginRequest) {
@@ -48,7 +48,7 @@ public class AuthController {
             .map(Permission::getName).collect(Collectors.joining(" "));
         JwtClaimsSet claims = JwtClaimsSet.builder()
             .issuedAt(now)
-            .expiresAt(now.plusSeconds(jwtLifetime))
+            .expiresAt(now.plusSeconds(accessTokenValiditySeconds))
             .subject(user.getUsername())
             .claim("scope", scope)
             .build();
@@ -56,10 +56,19 @@ public class AuthController {
         TokenResponse tokenResponse = TokenResponse.builder()
             .accessToken(jwt)
             .tokenType("Bearer")
-            .expiresIn(jwtLifetime)
+            .expiresIn(accessTokenValiditySeconds)
             .scope(scope)
             .build();
         return ResponseEntity.ok(tokenResponse);
+    }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<TokenResponse> refreshToken(String refreshToken) {
+        // Implement refresh token logic here
+        return ResponseEntity.status(501).body(TokenResponse.builder()
+            .error("not_implemented")
+            .errorDescription("Refresh token functionality is not implemented yet")
+            .build());
     }
 
     public record LoginRequest(String username, String password) {
@@ -67,18 +76,19 @@ public class AuthController {
 
     @Builder
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public static class TokenResponse {
+    public record TokenResponse(
         @JsonProperty("access_token")
-        private String accessToken;
+        String accessToken,
         @JsonProperty("token_type")
-        private String tokenType;
+        String tokenType,
         @JsonProperty("expires_in")
-        private Long expiresIn;
+        Long expiresIn,
         @JsonProperty("refresh_token")
-        private String refreshToken;
-        private String scope;
-        private String error;
+        String refreshToken,
+        String scope,
+        String error,
         @JsonProperty("error_description")
-        private String errorDescription;
+        String errorDescription
+    ) {
     }
 }

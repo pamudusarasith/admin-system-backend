@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: Admin System
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          public-key-location: classpath:keys/jwt.pub
+
+server:
+  servlet:
+    context-path: /api
+
+logging:
+  file:
+    path: ./logs
+
+  level:
+    org.springframework.security: TRACE
+
+custom:
+  jwt:
+    private-key: classpath:keys/jwt.key
+    public-key: classpath:keys/jwt.pub
+    access-token-validity-seconds: 3600
+    refresh-token-validity-seconds: 2592000
+
+  cors:
+    allowed-origins: http://localhost:3000
+    allowed-methods: GET, POST, PUT, DELETE
+    allowed-headers: Content-Type, Authorization

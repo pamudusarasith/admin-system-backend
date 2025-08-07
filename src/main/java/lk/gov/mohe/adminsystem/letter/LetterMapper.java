@@ -55,4 +55,20 @@ public abstract class LetterMapper {
         map.put("phone_number", senderDetails.phoneNumber());
         return map;
     }
+
+    ReceiverDetailsDto toReceiverDetailsDto(Map<String, Object> receiverDetails) {
+        return new ReceiverDetailsDto(
+            (String) receiverDetails.get("name"),
+            (String) receiverDetails.get("designation"),
+            (String) receiverDetails.get("division_name")
+        );
+    }
+
+    Map<String, Object> toReceiverDetailsMap(ReceiverDetailsDto receiverDetails) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("name", receiverDetails.name());
+        map.put("designation", receiverDetails.designation());
+        map.put("division_name", receiverDetails.divisionName());
+        return map;
+    }
 }

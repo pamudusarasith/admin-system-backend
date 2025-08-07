@@ -15,6 +15,9 @@ public record CreateOrUpdateLetterRequestDto(
     @JsonProperty("sender_details")
     SenderDetailsDto senderDetails,
 
+    @JsonProperty("receiver_details")
+    ReceiverDetailsDto receiverDetails,
+
     @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}")
     @JsonProperty("sent_date")
     String sentDate,

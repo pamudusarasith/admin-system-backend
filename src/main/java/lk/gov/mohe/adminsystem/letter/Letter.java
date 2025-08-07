@@ -34,6 +34,10 @@ public class Letter implements AttachmentParent {
     @JdbcTypeCode(SqlTypes.JSON)
     private Map<String, Object> senderDetails;
 
+    @Column(name = "receiver_details")
+    @JdbcTypeCode(SqlTypes.JSON)
+    private Map<String, Object> receiverDetails;
+
     @Column(name = "sent_date")
     private LocalDate sentDate;
 

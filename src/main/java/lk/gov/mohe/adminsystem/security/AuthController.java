@@ -12,7 +12,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Arrays;
@@ -39,7 +38,7 @@ public class AuthController {
 
     @PostMapping("/refresh-token")
     public ResponseEntity<AccessTokenDto> refreshToken(HttpServletRequest request,
-                                                 HttpServletResponse response) throws Exception {
+                                                       HttpServletResponse response) throws Exception {
         String refreshToken = getRefreshTokenFromCookie(request);
 
         RefreshTokenRequestDto refreshTokenRequest =
@@ -151,7 +150,7 @@ public class AuthController {
         cookie.setHttpOnly(refreshTokenCookieConfig.isHttpOnly());
         cookie.setSecure(refreshTokenCookieConfig.isSecure());
         cookie.setPath(path);
-        cookie.setMaxAge(refreshTokenValiditySeconds.intValue());
+        cookie.setMaxAge(Math.toIntExact(refreshTokenValiditySeconds));
         cookie.setAttribute("SameSite", refreshTokenCookieConfig.getSameSite());
 
         if (refreshTokenCookieConfig.getDomain() != null) {

@@ -18,11 +18,12 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class RefreshTokenService {
 
-    private static final int MAX_TOKENS_PER_USER = 5; // Limit concurrent sessions
+    // properties
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtEncoder jwtEncoder;
     private final JwtDecoder jwtDecoder;
-    
+    @Value("${custom.jwt.max-tokens-per-user}")
+    private int maxTokensPerUser; // Limit concurrent sessions, configurable via
     @Value("${custom.jwt.refresh-token-validity-seconds}")
     private Long refreshTokenValiditySeconds;
 
@@ -65,27 +66,29 @@ public class RefreshTokenService {
             // Decode the JWT refresh token
             Jwt jwt = jwtDecoder.decode(tokenValue);
             String jti = jwt.getClaim("jti");
-            
+
             if (jti == null) {
                 log.warn("Refresh token missing JTI claim");
                 return Optional.empty();
             }
 
             // Check if the token exists and is valid in the database
-            Optional<RefreshToken> refreshTokenOpt = refreshTokenRepository.findByJti(jti);
-            
+            Optional<RefreshToken> refreshTokenOpt =
+                refreshTokenRepository.findByJti(jti);
+
             if (refreshTokenOpt.isEmpty()) {
                 log.warn("Refresh token with JTI {} not found in database", jti);
                 return Optional.empty();
             }
-            
+
             RefreshToken refreshToken = refreshTokenOpt.get();
-            
+
             if (!refreshToken.isValid()) {
-                log.warn("Refresh token with JTI {} is not valid (revoked or expired)", jti);
+                log.warn("Refresh token with JTI {} is not valid (revoked or expired)",
+                    jti);
                 return Optional.empty();
             }
-            
+
             return Optional.of(refreshToken);
         } catch (JwtException e) {
             log.warn("Invalid refresh token JWT: {}", e.getMessage());
@@ -94,7 +97,8 @@ public class RefreshTokenService {
     }
 
     /**
-     * Rotates a refresh token - creates a new one and marks the old one as replaced.
+     * Rotates a refresh token - creates a new one and marks the old one as
+     * replaced.
      * This implements the refresh token rotation security pattern.
      */
     @Transactional
@@ -106,27 +110,30 @@ public class RefreshTokenService {
         try {
             Jwt jwt = jwtDecoder.decode(newTokenDto.refreshToken());
             String newJti = jwt.getClaim("jti");
-            
+
             Optional<RefreshToken> newTokenOpt = refreshTokenRepository.findByJti(newJti);
             if (newTokenOpt.isEmpty()) {
                 log.error("Failed to find newly created refresh token for user: {}",
                     oldToken.getUser().getUsername());
-                throw new IllegalStateException("New refresh token not found after creation");
+                throw new IllegalStateException("New refresh token not found after " +
+                    "creation");
             }
-            
+
             RefreshToken newToken = newTokenOpt.get();
-            
+
             // Mark old token as replaced
             oldToken.setReplacedByToken(newToken);
             oldToken.setRevoked(true);
             refreshTokenRepository.save(oldToken);
 
-            log.debug("Rotated refresh token for user: {}", oldToken.getUser().getUsername());
+            log.debug("Rotated refresh token for user: {}",
+                oldToken.getUser().getUsername());
 
             return newTokenDto;
         } catch (JwtException e) {
             log.error("Failed to decode newly created refresh token", e);
-            throw new IllegalStateException("Failed to decode newly created refresh token", e);
+            throw new IllegalStateException("Failed to decode newly created refresh " +
+                "token", e);
         }
     }
 
@@ -156,7 +163,8 @@ public class RefreshTokenService {
         if (refreshTokenOpt.isPresent()) {
             RefreshToken refreshToken = refreshTokenOpt.get();
             revokeTokenFamily(refreshToken);
-            log.debug("Revoked refresh token for user: {}", refreshToken.getUser().getUsername());
+            log.debug("Revoked refresh token for user: {}",
+                refreshToken.getUser().getUsername());
         } else {
             log.warn("Attempted to revoke invalid or non-existent refresh token");
         }
@@ -184,7 +192,7 @@ public class RefreshTokenService {
      */
     private String generateRefreshTokenJwt(User user, String jti) {
         Instant now = Instant.now();
-        
+
         JwtClaimsSet claims = JwtClaimsSet.builder()
             .issuer("admin-system")
             .subject(user.getUsername())
@@ -202,13 +210,13 @@ public class RefreshTokenService {
         long activeTokenCount = refreshTokenRepository.countValidTokensByUser(user,
             OffsetDateTime.now());
 
-        if (activeTokenCount >= MAX_TOKENS_PER_USER) {
+        if (activeTokenCount >= maxTokensPerUser) {
             // Revoke oldest tokens to make room for new one
             var validTokens = refreshTokenRepository.findValidTokensByUser(user,
                 OffsetDateTime.now());
             validTokens.stream()
                 .sorted((t1, t2) -> t1.getCreatedAt().compareTo(t2.getCreatedAt()))
-                .limit(activeTokenCount - MAX_TOKENS_PER_USER + 1)
+                .limit(activeTokenCount - maxTokensPerUser + 1)
                 .forEach(token -> {
                     token.setRevoked(true);
                     refreshTokenRepository.save(token);
@@ -228,9 +236,12 @@ public class RefreshTokenService {
         rootToken.setRevoked(true);
         refreshTokenRepository.save(rootToken);
 
-        // Find any tokens that were created as replacements for this token
-        // This would require additional queries and data structure to track the full
-        // chain
-        // For now, we'll just revoke this token
+        // Revoke all tokens in the replacement chain
+        RefreshToken replacedToken = rootToken.getReplacedByToken();
+        while (replacedToken != null) {
+            replacedToken.setRevoked(true);
+            refreshTokenRepository.save(replacedToken);
+            replacedToken = replacedToken.getReplacedByToken();
+        }
     }
 }

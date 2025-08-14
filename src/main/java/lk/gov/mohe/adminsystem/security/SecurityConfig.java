@@ -6,6 +6,9 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,16 +33,20 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
 import org.springframework.security.oauth2.server.resource.web.access.BearerTokenAccessDeniedHandler;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.*;
+import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.List;
+import java.util.function.Supplier;
 
 @Configuration
 @EnableMethodSecurity
 @EnableWebSecurity(debug = true)
+@RequiredArgsConstructor
 public class SecurityConfig {
     @Value("${custom.jwt.private-key}")
     private RSAPrivateKey privateKey;
@@ -59,7 +66,10 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(AbstractHttpConfigurer::disable)
+            .csrf(csrf -> csrf
+                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler())
+            )
             .cors(Customizer.withDefaults())
             .formLogin(AbstractHttpConfigurer::disable)
             .logout(AbstractHttpConfigurer::disable)
@@ -73,12 +83,12 @@ public class SecurityConfig {
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/login").permitAll()
                 .requestMatchers("/refresh-token").permitAll()
+                .requestMatchers("/csrf-token").permitAll()
                 .requestMatchers("/error").permitAll()
                 .anyRequest().authenticated());
 
         return http.build();
     }
-
 
     @Bean
     UrlBasedCorsConfigurationSource corsConfigurationSource() {
@@ -129,5 +139,41 @@ public class SecurityConfig {
             new JwtAuthenticationConverter();
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
         return jwtAuthenticationConverter;
+    }
+}
+
+final class SpaCsrfTokenRequestHandler implements CsrfTokenRequestHandler {
+    private final CsrfTokenRequestHandler plain = new CsrfTokenRequestAttributeHandler();
+    private final CsrfTokenRequestHandler xor = new XorCsrfTokenRequestAttributeHandler();
+
+    @Override
+    public void handle(HttpServletRequest request, HttpServletResponse response,
+                       Supplier<CsrfToken> csrfToken) {
+        /*
+         * Always use XorCsrfTokenRequestAttributeHandler to provide BREACH protection of
+         * the CsrfToken when it is rendered in the response body.
+         */
+        this.xor.handle(request, response, csrfToken);
+        /*
+         * Render the token value to a cookie by causing the deferred token to be loaded.
+         */
+        csrfToken.get();
+    }
+
+    @Override
+    public String resolveCsrfTokenValue(HttpServletRequest request, CsrfToken csrfToken) {
+        String headerValue = request.getHeader(csrfToken.getHeaderName());
+        /*
+         * If the request contains a request header, use CsrfTokenRequestAttributeHandler
+         * to resolve the CsrfToken. This applies when a single-page application includes
+         * the header value automatically, which was obtained via a cookie containing the
+         * raw CsrfToken.
+         *
+         * In all other cases (e.g. if the request contains a request parameter), use
+         * XorCsrfTokenRequestAttributeHandler to resolve the CsrfToken. This applies
+         * when a server-side rendered form includes the _csrf request parameter as a
+         * hidden input.
+         */
+        return (StringUtils.hasText(headerValue) ? this.plain : this.xor).resolveCsrfTokenValue(request, csrfToken);
     }
 }

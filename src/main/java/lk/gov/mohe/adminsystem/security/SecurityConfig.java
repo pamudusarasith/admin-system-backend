@@ -21,7 +21,9 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
@@ -70,6 +72,7 @@ public class SecurityConfig {
                 .accessDeniedHandler(new BearerTokenAccessDeniedHandler()))
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/login").permitAll()
+                .requestMatchers("/refresh-token").permitAll()
                 .requestMatchers("/error").permitAll()
                 .anyRequest().authenticated());
 
@@ -83,6 +86,7 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(List.of(allowedOrigins));
         configuration.setAllowedMethods(List.of(allowedMethods));
         configuration.setAllowedHeaders(List.of(allowedHeaders));
+        configuration.setAllowCredentials(true); // Required for cookies
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
@@ -109,6 +113,11 @@ public class SecurityConfig {
         JWK jwk = new RSAKey.Builder(this.publicKey).privateKey(privateKey).build();
         JWKSource<SecurityContext> jwkSource = new ImmutableJWKSet<>(new JWKSet(jwk));
         return new NimbusJwtEncoder(jwkSource);
+    }
+
+    @Bean
+    JwtDecoder jwtDecoder() {
+        return NimbusJwtDecoder.withPublicKey(this.publicKey).build();
     }
 
     @Bean

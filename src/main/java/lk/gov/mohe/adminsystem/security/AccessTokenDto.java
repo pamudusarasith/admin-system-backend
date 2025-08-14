@@ -6,18 +6,13 @@ import lombok.Builder;
 
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public record TokenDto(
+public record AccessTokenDto(
     @JsonProperty("access_token")
     String accessToken,
     @JsonProperty("token_type")
     String tokenType,
     @JsonProperty("expires_in")
     Long expiresIn,
-    @JsonProperty("refresh_token")
-    String refreshToken,
-    String scope,
-    String error,
-    @JsonProperty("error_description")
-    String errorDescription
+    String scope
 ) {
 }

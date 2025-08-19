@@ -32,6 +32,7 @@ custom:
     public-key: classpath:keys/jwt.pub
     access-token-validity-seconds: 3600
     refresh-token-validity-seconds: 2592000
+    max-tokens-per-user: 5
 
   security:
     refresh-token-cookie:

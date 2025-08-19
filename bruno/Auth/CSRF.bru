@@ -1,0 +1,19 @@
+meta {
+  name: CSRF
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/csrf-token
+  body: none
+  auth: none
+}
+
+script:post-response {
+  bru.setEnvVar('csrf',res('token'))
+}
+
+settings {
+  encodeUrl: true
+}

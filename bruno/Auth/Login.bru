@@ -1,0 +1,30 @@
+meta {
+  name: Login
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{base_url}}/login?_csrf={{csrf}}
+  body: json
+  auth: none
+}
+
+params:query {
+  _csrf: {{csrf}}
+}
+
+body:json {
+  {
+    "username": "admin",
+    "password": "password"
+  }
+}
+
+script:post-response {
+  bru.setEnvVar('access_token', 'Bearer ' + res('access_token'))
+}
+
+settings {
+  encodeUrl: true
+}

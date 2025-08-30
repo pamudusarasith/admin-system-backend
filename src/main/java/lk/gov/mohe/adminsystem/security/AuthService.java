@@ -6,12 +6,14 @@ import lk.gov.mohe.adminsystem.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -31,20 +33,21 @@ public class AuthService {
 
     @Transactional
     public AuthTokensDto login(LoginRequestDto loginRequest) {
+        if (loginRequest == null || loginRequest.username() == null || loginRequest.password() == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                "Invalid username or password");
+        }
+
         User user = userRepository.findByUsername(loginRequest.username());
         if (user == null || !passwordEncoder.matches(loginRequest.password(),
             user.getPassword())) {
-            return AuthTokensDto.builder()
-                .error("invalid_grant")
-                .errorDescription("Invalid username or password")
-                .build();
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                "Invalid username or password");
         }
 
         if (!user.getIsActive()) {
-            return AuthTokensDto.builder()
-                .error("account_disabled")
-                .errorDescription("User account is disabled")
-                .build();
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                "User account is disabled");
         }
 
         // Generate access token
@@ -60,7 +63,12 @@ public class AuthService {
     }
 
     @Transactional
-    public AuthTokensDto refreshAccessToken(RefreshTokenRequestDto refreshTokenRequest) throws Exception {
+    public AuthTokensDto refreshAccessToken(RefreshTokenRequestDto refreshTokenRequest) {
+        if (refreshTokenRequest == null || refreshTokenRequest.refreshToken() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                "Refresh token is required");
+        }
+
         String tokenValue = refreshTokenRequest.refreshToken();
 
         // Validate the refresh token
@@ -69,26 +77,20 @@ public class AuthService {
 
         if (refreshTokenOpt.isEmpty()) {
             log.warn("Attempted to use invalid refresh token");
-            throw new Exception("Invalid refresh token");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                "Invalid refresh token");
         }
 
         RefreshToken refreshToken = refreshTokenOpt.get();
         User user = refreshToken.getUser();
 
-        // Additional security: verify the token type claim
-        try {
-            // Note: We don't need to inject JwtDecoder here since validation is done in RefreshTokenService
-            // But we could add additional verification if needed
-        } catch (Exception e) {
-            log.warn("Error validating refresh token JWT structure: {}", e.getMessage());
-            throw new Exception("Invalid refresh token format");
-        }
-
         // Check if user is still active
         if (!user.getIsActive()) {
-            log.warn("Attempted to refresh token for inactive user: {}", user.getUsername());
+            log.warn("Attempted to refresh token for inactive user: {}",
+                user.getUsername());
             refreshTokenService.revokeAllUserTokens(user);
-            throw new Exception("User account is disabled");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                "User account is disabled");
         }
 
         // Rotate the refresh token (security best practice)
@@ -107,18 +109,39 @@ public class AuthService {
     }
 
     public void revokeRefreshToken(String tokenValue) {
+        if (tokenValue == null || tokenValue.trim().isEmpty()) {
+            log.debug("Attempted to revoke null or empty token value");
+            return; // Silently ignore null/empty tokens
+        }
         refreshTokenService.revokeRefreshTokenByJwt(tokenValue);
     }
 
     public void revokeAllUserTokens(String username) {
+        if (username == null || username.trim().isEmpty()) {
+            log.debug("Attempted to revoke tokens for null or empty username");
+            return; // Silently ignore null/empty usernames
+        }
+
         User user = userRepository.findByUsername(username);
         if (user != null) {
             refreshTokenService.revokeAllUserTokens(user);
             log.debug("Revoked all tokens for user: {}", username);
+        } else {
+            log.debug("User not found for token revocation: {}", username);
         }
     }
 
     private AccessTokenDto generateAccessToken(User user) {
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                "Cannot generate token for null user");
+        }
+
+        if (user.getRole() == null || user.getRole().getPermissions() == null) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                "User has invalid role or permissions");
+        }
+
         Instant now = Instant.now();
         String scope = user.getRole()
             .getPermissions().stream()

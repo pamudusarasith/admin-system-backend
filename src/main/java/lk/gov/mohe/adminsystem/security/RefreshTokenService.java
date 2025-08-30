@@ -4,9 +4,11 @@ import lk.gov.mohe.adminsystem.user.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -33,6 +35,11 @@ public class RefreshTokenService {
      */
     @Transactional
     public RefreshTokenDto createRefreshToken(User user) {
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                "Cannot create refresh token for null user");
+        }
+
         // Clean up expired tokens first
         cleanupExpiredTokens();
 
@@ -62,6 +69,11 @@ public class RefreshTokenService {
      */
     @Transactional(readOnly = true)
     public Optional<RefreshToken> validateRefreshToken(String tokenValue) {
+        if (tokenValue == null || tokenValue.trim().isEmpty()) {
+            log.debug("Attempted to validate null or empty refresh token");
+            return Optional.empty();
+        }
+
         try {
             // Decode the JWT refresh token
             Jwt jwt = jwtDecoder.decode(tokenValue);
@@ -103,6 +115,16 @@ public class RefreshTokenService {
      */
     @Transactional
     public RefreshTokenDto rotateRefreshToken(RefreshToken oldToken) {
+        if (oldToken == null) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                "Cannot rotate null refresh token");
+        }
+
+        if (oldToken.getUser() == null) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                "Cannot rotate token with null user");
+        }
+
         // Create new token
         RefreshTokenDto newTokenDto = createRefreshToken(oldToken.getUser());
 
@@ -115,8 +137,8 @@ public class RefreshTokenService {
             if (newTokenOpt.isEmpty()) {
                 log.error("Failed to find newly created refresh token for user: {}",
                     oldToken.getUser().getUsername());
-                throw new IllegalStateException("New refresh token not found after " +
-                    "creation");
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Internal error during token rotation");
             }
 
             RefreshToken newToken = newTokenOpt.get();
@@ -132,8 +154,8 @@ public class RefreshTokenService {
             return newTokenDto;
         } catch (JwtException e) {
             log.error("Failed to decode newly created refresh token", e);
-            throw new IllegalStateException("Failed to decode newly created refresh " +
-                "token", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                "Internal error during token processing", e);
         }
     }
 
@@ -159,6 +181,11 @@ public class RefreshTokenService {
      */
     @Transactional
     public void revokeRefreshTokenByJwt(String tokenValue) {
+        if (tokenValue == null || tokenValue.trim().isEmpty()) {
+            log.debug("Attempted to revoke null or empty refresh token");
+            return;
+        }
+
         Optional<RefreshToken> refreshTokenOpt = validateRefreshToken(tokenValue);
         if (refreshTokenOpt.isPresent()) {
             RefreshToken refreshToken = refreshTokenOpt.get();
@@ -175,6 +202,11 @@ public class RefreshTokenService {
      */
     @Transactional
     public void revokeAllUserTokens(User user) {
+        if (user == null) {
+            log.debug("Attempted to revoke tokens for null user");
+            return;
+        }
+
         refreshTokenRepository.revokeAllUserTokens(user);
         log.debug("Revoked all tokens for user: {}", user.getUsername());
     }

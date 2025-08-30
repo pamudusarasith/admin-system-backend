@@ -3,16 +3,17 @@ package lk.gov.mohe.adminsystem.security;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Arrays;
 
@@ -27,7 +28,7 @@ public class AuthController {
     private Long refreshTokenValiditySeconds;
 
     @PostMapping("/login")
-    public ResponseEntity<AccessTokenDto> login(@Valid @RequestBody LoginRequestDto loginRequest,
+    public ResponseEntity<AccessTokenDto> login(@RequestBody LoginRequestDto loginRequest,
                                                 HttpServletResponse response) {
         AuthTokensDto authTokensDto = authService.login(loginRequest);
 
@@ -38,8 +39,13 @@ public class AuthController {
 
     @PostMapping("/refresh-token")
     public ResponseEntity<AccessTokenDto> refreshToken(HttpServletRequest request,
-                                                       HttpServletResponse response) throws Exception {
+                                                       HttpServletResponse response) {
         String refreshToken = getRefreshTokenFromCookie(request);
+
+        if (refreshToken == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                "No refresh token found");
+        }
 
         RefreshTokenRequestDto refreshTokenRequest =
             new RefreshTokenRequestDto(refreshToken);
@@ -68,7 +74,8 @@ public class AuthController {
             log.error("Error during logout", e);
             // Still clear the cookie even if revocation fails
             clearRefreshTokenCookie(response);
-            return ResponseEntity.badRequest().build();
+            // Return OK since logout succeeded from client perspective (cookie cleared)
+            return ResponseEntity.ok().build();
         }
     }
 
@@ -76,21 +83,27 @@ public class AuthController {
     public ResponseEntity<Void> logoutAll(Authentication authentication,
                                           HttpServletResponse response) {
         try {
-            if (authentication != null && authentication.getPrincipal() instanceof Jwt jwt) {
-                String username = jwt.getSubject();
-                authService.revokeAllUserTokens(username);
-
-                // Clear the refresh token cookie
-                clearRefreshTokenCookie(response);
-
-                return ResponseEntity.ok().build();
+            if (authentication == null || !(authentication.getPrincipal() instanceof Jwt jwt)) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                    "No valid authentication found");
             }
-            return ResponseEntity.badRequest().build();
+
+            String username = jwt.getSubject();
+            authService.revokeAllUserTokens(username);
+
+            // Clear the refresh token cookie
+            clearRefreshTokenCookie(response);
+
+            return ResponseEntity.ok().build();
+        } catch (ResponseStatusException e) {
+            // Re-throw ResponseStatusException to maintain proper HTTP status
+            throw e;
         } catch (Exception e) {
             log.error("Error during logout all", e);
             // Still clear the cookie even if revocation fails
             clearRefreshTokenCookie(response);
-            return ResponseEntity.badRequest().build();
+            // Return OK since logout succeeded from client perspective (cookie cleared)
+            return ResponseEntity.ok().build();
         }
     }
 

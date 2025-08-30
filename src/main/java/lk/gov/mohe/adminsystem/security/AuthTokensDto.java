@@ -5,8 +5,6 @@ import lombok.Builder;
 @Builder
 public record AuthTokensDto(
     AccessTokenDto accessTokenDto,
-    RefreshTokenDto refreshTokenDto,
-    String error,
-    String errorDescription
+    RefreshTokenDto refreshTokenDto
 ) {
 }

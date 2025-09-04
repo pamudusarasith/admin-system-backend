@@ -22,7 +22,7 @@ body:json {
 }
 
 script:post-response {
-  bru.setEnvVar('access_token', 'Bearer ' + res('access_token'))
+  bru.setEnvVar('access_token', res('access_token'))
 }
 
 settings {

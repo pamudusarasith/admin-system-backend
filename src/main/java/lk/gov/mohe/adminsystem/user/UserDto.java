@@ -1,7 +1,7 @@
 package lk.gov.mohe.adminsystem.user;
 
 public record UserDto(
-    Integer id,
+    Long id,
     String username,
     String email,
     String fullName,

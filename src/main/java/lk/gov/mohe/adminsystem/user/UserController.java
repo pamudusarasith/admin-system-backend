@@ -13,7 +13,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -64,7 +66,7 @@ public class UserController {
 
     @PutMapping("/users/{id}")
     @PreAuthorize("hasAuthority('user:update')")
-    public ResponseEntity<String> updateUser(@PathVariable Integer id,
+    public ResponseEntity<String> updateUser(@PathVariable Long id,
                                              @Valid @RequestBody UpdateUserRequest request) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
@@ -93,7 +95,7 @@ public class UserController {
 
     @DeleteMapping("/users/{id}")
     @PreAuthorize("hasAuthority('user:delete')")
-    public ResponseEntity<String> deleteUser(@PathVariable Integer id) {
+    public ResponseEntity<String> deleteUser(@PathVariable Long id) {
         if (!userRepository.existsById(id)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
         }
@@ -102,12 +104,15 @@ public class UserController {
         return ResponseEntity.ok("User deleted successfully");
     }
 
-    @GetMapping("/users/{id}")
-    @PreAuthorize("hasAuthority('user:read')")
-    public ResponseEntity<User> getUserById(@PathVariable Integer id) {
-        User user = userRepository.findById(id)
+    @GetMapping("/profile")
+    public ResponseEntity<UserDto> getProfile(@AuthenticationPrincipal Jwt jwt) {
+
+        User user = userRepository.findById(jwt.getClaim("user_id"))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-        return ResponseEntity.ok(user);
+        UserDto userDto = userMapper.toUserDto(user);
+        return ResponseEntity.ok(userDto);
     }
+
+
 
 }

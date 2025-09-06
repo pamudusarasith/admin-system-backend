@@ -32,7 +32,7 @@ public class UserController {
     private final UserMapper userMapper;
 
     @GetMapping("/users")
-    @PreAuthorize("hasAuthority('user:view')")
+    @PreAuthorize("hasAuthority('user:read')")
     public ResponseEntity<List<UserDto>> getUsers() {
         List<User> users = userRepository.findAll();
         List<UserDto> userDtos = users.stream().map(userMapper::toUserDto).toList();

@@ -1,0 +1,15 @@
+meta {
+  name: Get UserCountByRole
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{base_url}}/roles/1/userCount
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}

@@ -3,6 +3,7 @@ package lk.gov.mohe.adminsystem.role;
 import jakarta.validation.Valid;
 import lk.gov.mohe.adminsystem.permission.Permission;
 import lk.gov.mohe.adminsystem.permission.PermissionRepository;
+import lk.gov.mohe.adminsystem.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +20,7 @@ public class RoleController {
 
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
+    private final UserRepository userRepository;
 
     @PostMapping("/roles")
     public ResponseEntity<?> createRole(@Valid @RequestBody CreateRoleRequest request) {
@@ -63,8 +65,7 @@ public class RoleController {
                     role.getId(),
                     role.getName(),
                     role.getDescription(),
-                    role.getPermissions().stream().map(Permission::getName).toList()
-            );
+                    role.getPermissions().stream().map(Permission::getName).toList());
             roleDtos.add(roleDto);
         }
         return ResponseEntity.ok(roleDtos);
@@ -78,6 +79,12 @@ public class RoleController {
                     return ResponseEntity.ok("Role deleted successfully");
                 })
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/roles/{id}/userCount")
+    public ResponseEntity<Long> getUserCountByRole(@PathVariable Integer id) {
+        long count = userRepository.countByRole_Id(id);
+        return ResponseEntity.ok(count);
     }
 
     public record CreateRoleRequest(

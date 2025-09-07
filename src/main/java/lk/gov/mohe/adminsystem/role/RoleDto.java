@@ -6,6 +6,7 @@ public record RoleDto(
         Integer id,
         String name,
         String description,
-        List<String> permissions
+        List<String> permissions,
+        long userCount
 ) {
 }

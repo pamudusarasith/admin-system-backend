@@ -61,11 +61,14 @@ public class RoleController {
         List<Role> roles = roleRepository.findAll();
         List<RoleDto> roleDtos = new ArrayList<>();
         for (Role role : roles) {
+            long userCount = userRepository.countByRole_Id(role.getId());
             RoleDto roleDto = new RoleDto(
                     role.getId(),
                     role.getName(),
                     role.getDescription(),
-                    role.getPermissions().stream().map(Permission::getName).toList());
+                    role.getPermissions().stream().map(Permission::getName).toList(),
+                    userCount
+            );
             roleDtos.add(roleDto);
         }
         return ResponseEntity.ok(roleDtos);
@@ -80,12 +83,7 @@ public class RoleController {
                 })
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
-
-    @GetMapping("/roles/{id}/userCount")
-    public ResponseEntity<Long> getUserCountByRole(@PathVariable Integer id) {
-        long count = userRepository.countByRole_Id(id);
-        return ResponseEntity.ok(count);
-    }
+    
 
     public record CreateRoleRequest(
             String name,

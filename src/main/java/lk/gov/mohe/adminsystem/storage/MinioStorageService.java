@@ -6,7 +6,6 @@ import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,22 +19,8 @@ import java.util.UUID;
 public class MinioStorageService {
     private final MinioClient minioClient;
 
-    @Value("${custom.minio.endpoint}")
-    String endpoint;
-    @Value("${custom.minio.access-key}")
-    String accessKey;
-    @Value("${custom.minio.secret-key}")
-    String secretKey;
     @Value("${custom.minio.bucket}")
     private String bucket;
-
-    @Bean
-    public MinioClient minioClient() {
-        return MinioClient.builder()
-            .endpoint(endpoint)
-            .credentials(accessKey, secretKey)
-            .build();
-    }
 
     public String upload(String folder, MultipartFile file) {
         try {

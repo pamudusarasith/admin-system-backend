@@ -8,4 +8,6 @@ import org.springframework.lang.NonNull;
 public interface LetterRepository extends JpaRepository<Letter, Integer> {
     @NonNull
     Page<Letter> findAll(@NonNull Pageable pageable);
+
+    boolean existsLetterByReference(String reference);
 }

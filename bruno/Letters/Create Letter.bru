@@ -1,0 +1,20 @@
+meta {
+  name: Create Letter
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/letters
+  body: multipartForm
+  auth: inherit
+}
+
+body:multipart-form {
+  details: {"reference": "REF123", "sender_details": {"name": "Pamudu Sarasith"}, "receiver_details": {"name": "Pamudu Lelkada"}, "received_date": "2025-07-07", "mode_of_arrival": "REGISTERED_POST", "subject": "Subject 123", "priority": "HIGH"} @contentType(application/json)
+  attachments: @file(bruno.json)
+}
+
+settings {
+  encodeUrl: true
+}

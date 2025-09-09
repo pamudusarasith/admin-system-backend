@@ -8,10 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -59,15 +56,22 @@ public class RoleController {
     @GetMapping("/roles")
     public ResponseEntity<List<RoleDto>> getAllRoles() {
         List<Role> roles = roleRepository.findAll();
+        List<Integer> roleIds = roles.stream().map(Role::getId).toList();
+        List<Object[]> userCounts = userRepository.countUsersByRoleIds(roleIds);
+        Map<Integer, Long> userCountMap = new HashMap<>();
+        for (Object[] obj : userCounts) {
+            Integer roleId = (Integer) obj[0];
+            Long count = (Long) obj[1];
+            userCountMap.put(roleId, count);
+        }
         List<RoleDto> roleDtos = new ArrayList<>();
         for (Role role : roles) {
-            long userCount = userRepository.countByRole_Id(role.getId());
             RoleDto roleDto = new RoleDto(
-                    role.getId(),
-                    role.getName(),
-                    role.getDescription(),
-                    role.getPermissions().stream().map(Permission::getName).toList(),
-                    userCount
+                role.getId(),
+                role.getName(),
+                role.getDescription(),
+                role.getPermissions().stream().map(Permission::getName).toList(),
+                userCountMap.getOrDefault(role.getId(), 0L)
             );
             roleDtos.add(roleDto);
         }

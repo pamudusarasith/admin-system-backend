@@ -4,13 +4,9 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lk.gov.mohe.adminsystem.user.User;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import lombok.*;
 
-import java.time.OffsetDateTime;
+import java.time.Instant;
 
 @Getter
 @Setter
@@ -37,7 +33,7 @@ public class RefreshToken {
 
     @NotNull
     @Column(name = "expires_at", nullable = false)
-    private OffsetDateTime expiresAt;
+    private Instant expiresAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "replaced_by_token_id")
@@ -47,29 +43,26 @@ public class RefreshToken {
     @Column(name = "revoked", columnDefinition = "BOOLEAN DEFAULT FALSE")
     private Boolean revoked = false;
 
-    @Column(name = "created_at", columnDefinition = "TIMESTAMPTZ DEFAULT now()")
-    private OffsetDateTime createdAt;
+    @Column(name = "created_at")
+    private Instant createdAt;
 
-    @Column(name = "updated_at", columnDefinition = "TIMESTAMPTZ DEFAULT now()")
-    private OffsetDateTime updatedAt;
+    @Column(name = "updated_at")
+    private Instant updatedAt;
 
     @PrePersist
     protected void onCreate() {
-        if (createdAt == null) {
-            createdAt = OffsetDateTime.now();
-        }
-        if (updatedAt == null) {
-            updatedAt = OffsetDateTime.now();
-        }
+        Instant now = Instant.now();
+        createdAt = now;
+        updatedAt = now;
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = OffsetDateTime.now();
+        updatedAt = Instant.now();
     }
 
     public boolean isExpired() {
-        return OffsetDateTime.now().isAfter(expiresAt);
+        return Instant.now().isAfter(expiresAt);
     }
 
     public boolean isValid() {

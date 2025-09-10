@@ -8,7 +8,7 @@ import lk.gov.mohe.adminsystem.role.Role;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.OffsetDateTime;
+import java.time.Instant;
 
 @Getter
 @Setter
@@ -59,10 +59,25 @@ public class User {
     @Column(name = "account_setup_required", columnDefinition = "BOOLEAN DEFAULT TRUE")
     private Boolean accountSetupRequired;
 
-    @Column(name = "created_at", columnDefinition = "TIMESTAMPTZ DEFAULT now()")
-    private OffsetDateTime createdAt;
+    @Column(name = "created_at")
+    private Instant createdAt;
 
-    @Column(name = "updated_at", columnDefinition = "TIMESTAMPTZ DEFAULT now()")
-    private OffsetDateTime updatedAt;
+    @Column(name = "updated_at")
+    private Instant updatedAt;
+
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
+
+    @PrePersist
+    public void onCreate() {
+        Instant now = Instant.now();
+        this.createdAt = now;
+        this.updatedAt = now;
+    }
+
+    @PreUpdate
+    public void onUpdate() {
+        this.updatedAt = Instant.now();
+    }
 
 }

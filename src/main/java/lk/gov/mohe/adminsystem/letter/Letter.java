@@ -12,6 +12,7 @@ import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Map;
 
@@ -79,7 +80,28 @@ public class Letter implements AttachmentParent {
     @Column(name = "is_accepted_by_user", columnDefinition = "BOOLEAN DEFAULT FALSE")
     private Boolean isAcceptedByUser;
 
+    @Column(name = "created_at")
+    private Instant createdAt;
+
+    @Column(name = "updated_at")
+    private Instant updatedAt;
+
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
+
     public ParentTypeEnum getType() {
         return ParentTypeEnum.LETTER;
+    }
+
+    @PrePersist
+    public void onCreate() {
+        Instant now = Instant.now();
+        createdAt = now;
+        updatedAt = now;
+    }
+
+    @PreUpdate
+    public void onUpdate() {
+        updatedAt = Instant.now();
     }
 }

@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,7 +17,8 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Inte
     Optional<RefreshToken> findByJti(String jti);
     
     @Query("SELECT rt FROM RefreshToken rt WHERE rt.user = :user AND rt.revoked = false AND rt.expiresAt > :now")
-    List<RefreshToken> findValidTokensByUser(@Param("user") User user, @Param("now") OffsetDateTime now);
+    List<RefreshToken> findValidTokensByUser(@Param("user") User user,
+                                             @Param("now") Instant now);
     
     @Modifying
     @Query("UPDATE RefreshToken rt SET rt.revoked = true WHERE rt.user = :user")
@@ -29,8 +30,8 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Inte
     
     @Modifying
     @Query("DELETE FROM RefreshToken rt WHERE rt.expiresAt < :now")
-    void deleteExpiredTokens(@Param("now") OffsetDateTime now);
+    void deleteExpiredTokens(@Param("now") Instant now);
     
     @Query("SELECT COUNT(rt) FROM RefreshToken rt WHERE rt.user = :user AND rt.revoked = false AND rt.expiresAt > :now")
-    long countValidTokensByUser(@Param("user") User user, @Param("now") OffsetDateTime now);
+    long countValidTokensByUser(@Param("user") User user, @Param("now") Instant now);
 }

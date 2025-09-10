@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
-import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -53,7 +52,7 @@ public class RefreshTokenService {
         RefreshToken refreshToken = RefreshToken.builder()
             .jti(jti)
             .user(user)
-            .expiresAt(OffsetDateTime.now().plusSeconds(refreshTokenValiditySeconds))
+            .expiresAt(Instant.now().plusSeconds(refreshTokenValiditySeconds))
             .revoked(false)
             .build();
 
@@ -216,7 +215,7 @@ public class RefreshTokenService {
      */
     @Transactional
     public void cleanupExpiredTokens() {
-        refreshTokenRepository.deleteExpiredTokens(OffsetDateTime.now());
+        refreshTokenRepository.deleteExpiredTokens(Instant.now());
     }
 
     /**
@@ -240,12 +239,12 @@ public class RefreshTokenService {
 
     private void enforceTokenLimit(User user) {
         long activeTokenCount = refreshTokenRepository.countValidTokensByUser(user,
-            OffsetDateTime.now());
+            Instant.now());
 
         if (activeTokenCount >= maxTokensPerUser) {
             // Revoke oldest tokens to make room for new one
             var validTokens = refreshTokenRepository.findValidTokensByUser(user,
-                OffsetDateTime.now());
+                Instant.now());
             validTokens.stream()
                 .sorted((t1, t2) -> t1.getCreatedAt().compareTo(t2.getCreatedAt()))
                 .limit(activeTokenCount - maxTokensPerUser + 1)

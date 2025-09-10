@@ -3,25 +3,32 @@ package lk.gov.mohe.adminsystem.letter;
 import lk.gov.mohe.adminsystem.attachment.Attachment;
 import lk.gov.mohe.adminsystem.attachment.AttachmentRepository;
 import lk.gov.mohe.adminsystem.storage.MinioStorageService;
+import lk.gov.mohe.adminsystem.user.User;
+import lk.gov.mohe.adminsystem.user.UserRepository;
 import lk.gov.mohe.adminsystem.util.PaginatedResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 public class LetterService {
-
     private final LetterRepository letterRepository;
+    private final LetterEventRepository letterEventRepository;
     private final AttachmentRepository attachmentRepository;
     private final LetterMapper letterMapper;
     private final MinioStorageService storageService;
+    private final UserRepository userRepository;
 
     public PaginatedResponse<LetterDetailsMinDto> getLetters(Integer page,
                                                              Integer pageSize) {
@@ -36,7 +43,7 @@ public class LetterService {
     public Letter createLetter(CreateOrUpdateLetterRequestDto request,
                                MultipartFile[] attachments) {
         if (letterRepository.existsLetterByReference(request.reference())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
                 "Reference already exists");
         }
 
@@ -58,6 +65,12 @@ public class LetterService {
                 attachmentRepository.save(newAttachment);
             }
         }
+
+        Map<String, Object> eventDetails = Map.of(
+            "newStatus", savedLetter.getStatus().toString()
+        );
+        createLetterEvent(savedLetter, EventTypeEnum.CHANGE_STATUS, eventDetails);
+
         return savedLetter;
     }
 
@@ -69,5 +82,35 @@ public class LetterService {
         letterMapper.updateEntityFromCreateOrUpdateLetterRequestDto(request, letter);
 
         letterRepository.save(letter);
+    }
+
+    private void createLetterEvent(Letter letter, EventTypeEnum eventType,
+                                   Map<String, Object> eventDetails) {
+        LetterEvent letterEvent = new LetterEvent();
+        letterEvent.setLetter(letter);
+
+        User user = getCurrentUser();
+        letterEvent.setUser(user);
+
+        letterEvent.setEventType(eventType);
+        letterEvent.setEventDetails(eventDetails);
+        letterEventRepository.save(letterEvent);
+    }
+
+    private User getCurrentUser() {
+        Authentication authentication =
+            SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                "Authentication is required");
+        }
+
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username);
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found");
+        }
+        return user;
     }
 }

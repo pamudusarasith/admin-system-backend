@@ -23,6 +23,9 @@ public abstract class LetterMapper {
     @Mapping(target = "assignedUser", ignore = true)
     @Mapping(target = "isAcceptedByUser", ignore = true)
     @Mapping(target = "status", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "deletedAt", ignore = true)
     abstract Letter toEntity(CreateOrUpdateLetterRequestDto request);
 
     @Mapping(target = "id", ignore = true)
@@ -30,6 +33,9 @@ public abstract class LetterMapper {
     @Mapping(target = "assignedUser", ignore = true)
     @Mapping(target = "isAcceptedByUser", ignore = true)
     @Mapping(target = "status", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "deletedAt", ignore = true)
     abstract void updateEntityFromCreateOrUpdateLetterRequestDto(
         CreateOrUpdateLetterRequestDto request, @MappingTarget Letter letter
     );

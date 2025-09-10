@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
@@ -52,7 +52,8 @@ public class MinioStorageService {
     }
 
     private String buildObjectName(String folder, String originalFilename) {
-        String date = OffsetDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+        String date = formatter.format(Instant.now());
         String safeFolder = (folder == null || folder.isBlank()) ? "uploads" : folder;
         String base = (originalFilename == null || originalFilename.isBlank()) ?
             "file" : originalFilename;

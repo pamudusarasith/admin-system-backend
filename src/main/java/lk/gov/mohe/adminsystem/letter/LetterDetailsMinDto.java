@@ -18,6 +18,8 @@ public record LetterDetailsMinDto(
     DivisionDto assignedDivision,
     UserDto assignedUser,
     Boolean isAcceptedByUser,
-    Long noOfAttachments
+    Long noOfAttachments,
+    String createdAt,
+    String updatedAt
 ) {
 }

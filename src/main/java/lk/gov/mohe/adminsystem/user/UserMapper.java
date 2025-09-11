@@ -8,4 +8,8 @@ public interface UserMapper {
     @Mapping(target = "role", source = "role.name")
     @Mapping(target = "division", source = "division.name")
     UserDto toUserDto(User user);
+
+    @Mapping(target = "role", source = "role.name")
+    @Mapping(target = "division", source = "division.name")
+    UserMinDto toUserMinDto(User user);
 }

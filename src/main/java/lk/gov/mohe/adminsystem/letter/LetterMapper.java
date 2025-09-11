@@ -1,5 +1,7 @@
 package lk.gov.mohe.adminsystem.letter;
 
+import lk.gov.mohe.adminsystem.attachment.Attachment;
+import lk.gov.mohe.adminsystem.attachment.AttachmentMapper;
 import lk.gov.mohe.adminsystem.attachment.AttachmentRepository;
 import lk.gov.mohe.adminsystem.attachment.ParentTypeEnum;
 import lk.gov.mohe.adminsystem.division.DivisionMapper;
@@ -10,9 +12,11 @@ import org.mapstruct.MappingTarget;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-@Mapper(componentModel = "spring", uses = {UserMapper.class, DivisionMapper.class})
+@Mapper(componentModel = "spring", uses = {UserMapper.class, DivisionMapper.class,
+    AttachmentMapper.class})
 public abstract class LetterMapper {
     @Autowired
     AttachmentRepository attachmentRepository;
@@ -42,7 +46,11 @@ public abstract class LetterMapper {
 
     @Mapping(target = "noOfAttachments", expression = "java( attachmentRepository" +
         ".countByParentIdAndParentType(letter.getId(), letterParentType) )")
-    abstract LetterDetailsMinDto toLetterDetailsMinDto(Letter letter);
+    abstract LetterMinDto toLetterMinDto(Letter letter);
+
+    abstract LetterFullDto toLetterFullDto(Letter letter,
+                                           List<Attachment> attachments,
+                                           List<LetterEvent> events);
 
     SenderDetailsDto toSenderDetailsDto(Map<String, Object> senderDetails) {
         return new SenderDetailsDto(
@@ -77,4 +85,6 @@ public abstract class LetterMapper {
         map.put("division_name", receiverDetails.divisionName());
         return map;
     }
+
+    abstract LetterEventDto toLetterEventDto(LetterEvent event);
 }

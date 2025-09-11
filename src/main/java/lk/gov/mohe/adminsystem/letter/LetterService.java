@@ -2,6 +2,7 @@ package lk.gov.mohe.adminsystem.letter;
 
 import lk.gov.mohe.adminsystem.attachment.Attachment;
 import lk.gov.mohe.adminsystem.attachment.AttachmentRepository;
+import lk.gov.mohe.adminsystem.attachment.ParentTypeEnum;
 import lk.gov.mohe.adminsystem.storage.MinioStorageService;
 import lk.gov.mohe.adminsystem.user.User;
 import lk.gov.mohe.adminsystem.user.UserRepository;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -30,13 +32,24 @@ public class LetterService {
     private final MinioStorageService storageService;
     private final UserRepository userRepository;
 
-    public PaginatedResponse<LetterDetailsMinDto> getLetters(Integer page,
-                                                             Integer pageSize) {
+    public PaginatedResponse<LetterMinDto> getLetters(Integer page,
+                                                      Integer pageSize) {
         Pageable pageable = PageRequest.of(page, pageSize);
-        Page<LetterDetailsMinDto> lettersPage =
-            letterRepository.findAll(pageable).map(letterMapper::toLetterDetailsMinDto);
+        Page<LetterMinDto> lettersPage =
+            letterRepository.findAll(pageable).map(letterMapper::toLetterMinDto);
 
         return new PaginatedResponse<>(lettersPage);
+    }
+
+    public LetterFullDto getLetterById(Integer id) {
+        Letter letter = letterRepository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                "Letter not found with id: " + id));
+        List<Attachment> attachments =
+            attachmentRepository.findByParentTypeAndParentId(ParentTypeEnum.LETTER,
+                letter.getId());
+        List<LetterEvent> events = letterEventRepository.findByLetterId(letter.getId());
+        return letterMapper.toLetterFullDto(letter, attachments, events);
     }
 
     @Transactional

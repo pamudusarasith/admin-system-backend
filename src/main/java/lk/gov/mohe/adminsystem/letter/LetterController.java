@@ -16,13 +16,19 @@ public class LetterController {
     private final LetterService letterService;
 
     @GetMapping("/letters")
-    public ResponseEntity<PaginatedResponse<LetterDetailsMinDto>> getLetters(
+    public ResponseEntity<PaginatedResponse<LetterMinDto>> getLetters(
         @RequestParam(required = false, defaultValue = "0") Integer page,
         @RequestParam(required = false, defaultValue = "10") Integer pageSize
     ) {
-        PaginatedResponse<LetterDetailsMinDto> response = letterService.getLetters(page
+        PaginatedResponse<LetterMinDto> response = letterService.getLetters(page
             , pageSize);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/letters/{id}")
+    public ResponseEntity<LetterFullDto> getLetterById(@PathVariable Integer id) {
+        LetterFullDto letter = letterService.getLetterById(id);
+        return ResponseEntity.ok(letter);
     }
 
     @PostMapping(value = "/letters", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

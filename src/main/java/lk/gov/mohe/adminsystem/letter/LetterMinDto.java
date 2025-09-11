@@ -1,9 +1,9 @@
 package lk.gov.mohe.adminsystem.letter;
 
 import lk.gov.mohe.adminsystem.division.DivisionDto;
-import lk.gov.mohe.adminsystem.user.UserDto;
+import lk.gov.mohe.adminsystem.user.UserMinDto;
 
-public record LetterDetailsMinDto(
+public record LetterMinDto(
     Integer id,
     String reference,
     SenderDetailsDto senderDetails,
@@ -16,7 +16,7 @@ public record LetterDetailsMinDto(
     String priority,
     String status,
     DivisionDto assignedDivision,
-    UserDto assignedUser,
+    UserMinDto assignedUser,
     Boolean isAcceptedByUser,
     Long noOfAttachments,
     String createdAt,

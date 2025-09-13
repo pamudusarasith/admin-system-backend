@@ -18,6 +18,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class MinioStorageService {
+    private static final int DEFAULT_EXPIRY_SECONDS = 24 * 3600; // Default to 24 hours
     private final MinioClient minioClient;
 
     @Value("${custom.minio.bucket}")
@@ -45,7 +46,7 @@ public class MinioStorageService {
     }
 
     public String getFileUrl(String objectName) {
-        return getFileUrl(objectName, 24 * 3600); // Default to 1 day
+        return getFileUrl(objectName, DEFAULT_EXPIRY_SECONDS);
     }
 
     public String getFileUrl(String objectName, int expiresInSeconds) {

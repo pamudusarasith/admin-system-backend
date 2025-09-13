@@ -44,13 +44,20 @@ public abstract class LetterMapper {
         CreateOrUpdateLetterRequestDto request, @MappingTarget Letter letter
     );
 
+    @Mapping(target = "assignedUser", source = "assignedUser", qualifiedByName =
+        "toUserDtoMin")
     @Mapping(target = "noOfAttachments", expression = "java( attachmentRepository" +
         ".countByParentIdAndParentType(letter.getId(), letterParentType) )")
-    abstract LetterMinDto toLetterMinDto(Letter letter);
+    @Mapping(target = "attachments", ignore = true)
+    @Mapping(target = "events", ignore = true)
+    abstract LetterDto toLetterDtoMin(Letter letter);
 
-    abstract LetterFullDto toLetterFullDto(Letter letter,
-                                           List<Attachment> attachments,
-                                           List<LetterEvent> events);
+    @Mapping(target = "assignedUser", source = "letter.assignedUser", qualifiedByName =
+        "toUserDtoMin")
+    @Mapping(target = "noOfAttachments", ignore = true)
+    abstract LetterDto toLetterDtoFull(Letter letter,
+                                       List<Attachment> attachments,
+                                       List<LetterEvent> events);
 
     SenderDetailsDto toSenderDetailsDto(Map<String, Object> senderDetails) {
         return new SenderDetailsDto(
@@ -86,5 +93,6 @@ public abstract class LetterMapper {
         return map;
     }
 
+    @Mapping(target = "user", source = "user", qualifiedByName = "toUserDtoMin")
     abstract LetterEventDto toLetterEventDto(LetterEvent event);
 }

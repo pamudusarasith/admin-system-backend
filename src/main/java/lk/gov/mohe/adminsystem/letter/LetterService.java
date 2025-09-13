@@ -32,16 +32,16 @@ public class LetterService {
     private final MinioStorageService storageService;
     private final UserRepository userRepository;
 
-    public PaginatedResponse<LetterMinDto> getLetters(Integer page,
-                                                      Integer pageSize) {
+    public PaginatedResponse<LetterDto> getLetters(Integer page,
+                                                   Integer pageSize) {
         Pageable pageable = PageRequest.of(page, pageSize);
-        Page<LetterMinDto> lettersPage =
-            letterRepository.findAll(pageable).map(letterMapper::toLetterMinDto);
+        Page<LetterDto> lettersPage =
+            letterRepository.findAll(pageable).map(letterMapper::toLetterDtoMin);
 
         return new PaginatedResponse<>(lettersPage);
     }
 
-    public LetterFullDto getLetterById(Integer id) {
+    public LetterDto getLetterById(Integer id) {
         Letter letter = letterRepository.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                 "Letter not found with id: " + id));
@@ -49,7 +49,7 @@ public class LetterService {
             attachmentRepository.findByParentTypeAndParentId(ParentTypeEnum.LETTER,
                 letter.getId());
         List<LetterEvent> events = letterEventRepository.findByLetterId(letter.getId());
-        return letterMapper.toLetterFullDto(letter, attachments, events);
+        return letterMapper.toLetterDtoFull(letter, attachments, events);
     }
 
     @Transactional

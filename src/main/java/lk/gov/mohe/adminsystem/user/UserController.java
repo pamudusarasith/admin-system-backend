@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -111,6 +112,20 @@ public class UserController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         UserDto userDto = userMapper.toUserDto(user);
         return ResponseEntity.ok(userDto);
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<Map<String, String>> updateProfile(@AuthenticationPrincipal Jwt jwt,
+                                             @Valid @RequestBody UserProfileUpdateRequestDto request){
+        return userRepository.findById(jwt.getClaim("user_id"))
+                .map(user -> {
+                    user.setFullName(request.fullName());
+                    user.setEmail(request.email());
+                    user.setPhoneNumber(request.phoneNumber());
+                    userRepository.save(user);
+                    return ResponseEntity.ok(Map.of("message", "Profile updated successfully"));
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
 

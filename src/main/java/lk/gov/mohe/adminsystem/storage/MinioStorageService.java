@@ -18,6 +18,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class MinioStorageService {
+    private static final int DEFAULT_EXPIRY_SECONDS = 24 * 3600; // Default to 24 hours
     private final MinioClient minioClient;
 
     @Value("${custom.minio.bucket}")
@@ -41,6 +42,25 @@ public class MinioStorageService {
             return objectName;
         } catch (Exception e) {
             throw new StorageException("Failed to upload file", e);
+        }
+    }
+
+    public String getFileUrl(String objectName) {
+        return getFileUrl(objectName, DEFAULT_EXPIRY_SECONDS);
+    }
+
+    public String getFileUrl(String objectName, int expiresInSeconds) {
+        try {
+            return minioClient.getPresignedObjectUrl(
+                io.minio.GetPresignedObjectUrlArgs.builder()
+                    .method(io.minio.http.Method.GET)
+                    .bucket(bucket)
+                    .object(objectName)
+                    .expiry(expiresInSeconds)
+                    .build()
+            );
+        } catch (Exception e) {
+            throw new StorageException("Failed to generate a URL", e);
         }
     }
 

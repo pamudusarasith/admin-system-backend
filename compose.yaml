@@ -7,6 +7,8 @@ services:
       - "5432:5432"
   minio:
     image: minio/minio:latest
+    env_file:
+      - .env
     ports:
       - "9000:9000"
       - "9001:9001"

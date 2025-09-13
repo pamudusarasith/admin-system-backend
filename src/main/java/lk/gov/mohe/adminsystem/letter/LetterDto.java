@@ -1,9 +1,14 @@
 package lk.gov.mohe.adminsystem.letter;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lk.gov.mohe.adminsystem.attachment.AttachmentDto;
 import lk.gov.mohe.adminsystem.division.DivisionDto;
 import lk.gov.mohe.adminsystem.user.UserDto;
 
-public record LetterDetailsMinDto(
+import java.util.List;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record LetterDto(
     Integer id,
     String reference,
     SenderDetailsDto senderDetails,
@@ -13,12 +18,14 @@ public record LetterDetailsMinDto(
     ModeOfArrivalEnum modeOfArrival,
     String subject,
     String content,
-    String priority,
-    String status,
+    PriorityEnum priority,
+    StatusEnum status,
     DivisionDto assignedDivision,
     UserDto assignedUser,
     Boolean isAcceptedByUser,
     Long noOfAttachments,
+    List<AttachmentDto> attachments,
+    List<LetterEventDto> events,
     String createdAt,
     String updatedAt
 ) {

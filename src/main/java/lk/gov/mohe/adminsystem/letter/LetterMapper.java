@@ -1,5 +1,7 @@
 package lk.gov.mohe.adminsystem.letter;
 
+import lk.gov.mohe.adminsystem.attachment.Attachment;
+import lk.gov.mohe.adminsystem.attachment.AttachmentMapper;
 import lk.gov.mohe.adminsystem.attachment.AttachmentRepository;
 import lk.gov.mohe.adminsystem.attachment.ParentTypeEnum;
 import lk.gov.mohe.adminsystem.division.DivisionMapper;
@@ -10,9 +12,11 @@ import org.mapstruct.MappingTarget;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-@Mapper(componentModel = "spring", uses = {UserMapper.class, DivisionMapper.class})
+@Mapper(componentModel = "spring", uses = {UserMapper.class, DivisionMapper.class,
+    AttachmentMapper.class})
 public abstract class LetterMapper {
     @Autowired
     AttachmentRepository attachmentRepository;
@@ -40,9 +44,20 @@ public abstract class LetterMapper {
         CreateOrUpdateLetterRequestDto request, @MappingTarget Letter letter
     );
 
+    @Mapping(target = "assignedUser", source = "assignedUser", qualifiedByName =
+        "toUserDtoMin")
     @Mapping(target = "noOfAttachments", expression = "java( attachmentRepository" +
         ".countByParentIdAndParentType(letter.getId(), letterParentType) )")
-    abstract LetterDetailsMinDto toLetterDetailsMinDto(Letter letter);
+    @Mapping(target = "attachments", ignore = true)
+    @Mapping(target = "events", ignore = true)
+    abstract LetterDto toLetterDtoMin(Letter letter);
+
+    @Mapping(target = "assignedUser", source = "letter.assignedUser", qualifiedByName =
+        "toUserDtoMin")
+    @Mapping(target = "noOfAttachments", ignore = true)
+    abstract LetterDto toLetterDtoFull(Letter letter,
+                                       List<Attachment> attachments,
+                                       List<LetterEvent> events);
 
     SenderDetailsDto toSenderDetailsDto(Map<String, Object> senderDetails) {
         return new SenderDetailsDto(
@@ -77,4 +92,7 @@ public abstract class LetterMapper {
         map.put("division_name", receiverDetails.divisionName());
         return map;
     }
+
+    @Mapping(target = "user", source = "user", qualifiedByName = "toUserDtoMin")
+    abstract LetterEventDto toLetterEventDto(LetterEvent event);
 }

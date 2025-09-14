@@ -6,7 +6,6 @@ import lk.gov.mohe.adminsystem.attachment.ParentTypeEnum;
 import lk.gov.mohe.adminsystem.storage.MinioStorageService;
 import lk.gov.mohe.adminsystem.user.User;
 import lk.gov.mohe.adminsystem.user.UserRepository;
-import lk.gov.mohe.adminsystem.util.PaginatedResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,13 +31,10 @@ public class LetterService {
     private final MinioStorageService storageService;
     private final UserRepository userRepository;
 
-    public PaginatedResponse<LetterDto> getLetters(Integer page,
-                                                   Integer pageSize) {
+    public Page<LetterDto> getLetters(Integer page,
+                                      Integer pageSize) {
         Pageable pageable = PageRequest.of(page, pageSize);
-        Page<LetterDto> lettersPage =
-            letterRepository.findAll(pageable).map(letterMapper::toLetterDtoMin);
-
-        return new PaginatedResponse<>(lettersPage);
+        return letterRepository.findAll(pageable).map(letterMapper::toLetterDtoMin);
     }
 
     public LetterDto getLetterById(Integer id) {

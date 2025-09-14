@@ -17,7 +17,7 @@ import java.util.List;
 public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public Response<?> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
+    public ApiResponse<Void> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
         List<ErrorInfo> errors = new ArrayList<>();
         ex.getBindingResult().getFieldErrors().forEach(error -> {
             String defaultMessage = error.getDefaultMessage();
@@ -27,27 +27,23 @@ public class GlobalExceptionHandler {
             ErrorInfo errorInfo = new ErrorInfo(error.getField(), defaultMessage);
             errors.add(errorInfo);
         });
-        return new Response<>(errors);
+        return ApiResponse.error("Validation failed", errors);
     }
 
     @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<Response<?>> handleResponseStatusException(ResponseStatusException ex) {
-        List<ErrorInfo> errors = new ArrayList<>();
+    public ResponseEntity<ApiResponse<?>> handleResponseStatusException(ResponseStatusException ex) {
         String message = ex.getReason();
         if (message == null || message.isEmpty()) {
             message = "Something went wrong";
         }
-        errors.add(new ErrorInfo(null, message));
-        Response<?> response = new Response<>(errors);
-        return new ResponseEntity<>(response, ex.getStatusCode());
+        ApiResponse<Void> apiResponse = ApiResponse.error(message, null);
+        return new ResponseEntity<>(apiResponse, ex.getStatusCode());
     }
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)
-    public Response<?> handleAllExceptions(Exception ex) {
+    public ApiResponse<?> handleAllExceptions(Exception ex) {
         log.error("An unexpected error occurred", ex);
-        List<ErrorInfo> errors = new ArrayList<>();
-        errors.add(new ErrorInfo(null, "Something went wrong"));
-        return new Response<>(errors);
+        return ApiResponse.error("Something went wrong", null);
     }
 }

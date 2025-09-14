@@ -1,8 +1,10 @@
 package lk.gov.mohe.adminsystem.letter;
 
 import jakarta.validation.Valid;
-import lk.gov.mohe.adminsystem.util.PaginatedResponse;
+import lk.gov.mohe.adminsystem.util.Response;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,37 +19,41 @@ public class LetterController {
     private final LetterService letterService;
 
     @GetMapping("/letters")
-    public ResponseEntity<PaginatedResponse<LetterDto>> getLetters(
+    @ResponseStatus(HttpStatus.OK)
+    public Response<Page<LetterDto>> getLetters(
         @RequestParam(required = false, defaultValue = "0") Integer page,
         @RequestParam(required = false, defaultValue = "10") Integer pageSize
     ) {
-        PaginatedResponse<LetterDto> response = letterService.getLetters(page
-            , pageSize);
-        return ResponseEntity.ok(response);
+        Page<LetterDto> letters = letterService.getLetters(page, pageSize);
+        return new Response<>(letters);
     }
 
     @GetMapping("/letters/{id}")
     @PreAuthorize("hasAuthority('letter:read')")
-    public ResponseEntity<LetterDto> getLetterById(@PathVariable Integer id) {
+    @ResponseStatus(HttpStatus.OK)
+    public Response<LetterDto> getLetterById(@PathVariable Integer id) {
         LetterDto letter = letterService.getLetterById(id);
-        return ResponseEntity.ok(letter);
+        return new Response<>(letter);
     }
 
     @PostMapping(value = "/letters", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<String> createLetter(
+    public ResponseEntity<Response<?>> createLetter(
         @Valid @RequestPart("details") CreateOrUpdateLetterRequestDto request,
         @RequestPart(value = "attachments", required = false) MultipartFile[] attachments
     ) {
         Letter letter = letterService.createLetter(request, attachments);
-        return ResponseEntity.created(URI.create("/letters/" + letter.getId())).build();
+        return ResponseEntity
+            .created(URI.create("/letters/" + letter.getId()))
+            .body(new Response<>("Letter created successfully"));
     }
 
     @PutMapping("/letters/{id}")
-    public ResponseEntity<String> updateLetter(
+    @ResponseStatus(HttpStatus.OK)
+    public Response<?> updateLetter(
         @PathVariable Integer id,
         @Valid @RequestBody CreateOrUpdateLetterRequestDto request
     ) {
         letterService.updateLetter(id, request);
-        return ResponseEntity.ok("");
+        return new Response<>("Letter updated successfully");
     }
 }

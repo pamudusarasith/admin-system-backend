@@ -34,13 +34,14 @@ logging:
 
   level:
     org.springframework.security: TRACE
+    lk.gov.mohe.adminsystem: DEBUG
 
 custom:
   jwt:
     private-key: classpath:keys/jwt.key
     public-key: classpath:keys/jwt.pub
-    access-token-validity-seconds: 1800
-    refresh-token-validity-seconds: 2592000
+    access-token-validity-seconds: 300 # 5 minutes
+    refresh-token-validity-seconds: 2592000 # 30 days
     max-tokens-per-user: 5
 
   security:

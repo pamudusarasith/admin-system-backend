@@ -3,6 +3,7 @@ package lk.gov.mohe.adminsystem.util;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -38,6 +39,13 @@ public class GlobalExceptionHandler {
         }
         ApiResponse<Void> apiResponse = ApiResponse.error(message, null);
         return new ResponseEntity<>(apiResponse, ex.getStatusCode());
+    }
+
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ApiResponse<Void> handleAuthorizationDeniedException(AuthorizationDeniedException ex) {
+        return ApiResponse.error("You do not have permission to perform this action",
+            null);
     }
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

@@ -1,0 +1,19 @@
+meta {
+  name: Refresh Token
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base_url}}/refresh-token?_csrf={{csrf}}
+  body: none
+  auth: none
+}
+
+params:query {
+  _csrf: {{csrf}}
+}
+
+settings {
+  encodeUrl: true
+}

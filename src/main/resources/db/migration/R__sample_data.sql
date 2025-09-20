@@ -17,9 +17,15 @@ INSERT INTO permissions (name, description) VALUES
 ('user:create', 'Permission to create new users'),
 ('user:update', 'Permission to update user data'),
 ('user:delete', 'Permission to delete users'),
-('letter:read', 'Permission to read letters'),
+('letter:read:all', 'Permission to read all letters'),
+('letter:read:unassigned', 'Permission to read unassigned letters'),
+('letter:read:division', 'Permission to read letters assigned to own division'),
+('letter:read:own', 'Permission to read letters assigned to self'),
 ('letter:create', 'Permission to create new letters'),
-('letter:update', 'Permission to update letters'),
+('letter:update:all', 'Permission to update all letters'),
+('letter:update:unassigned', 'Permission to update unassigned letters'),
+('letter:update:division', 'Permission to update letters assigned to own division'),
+('letter:update:own', 'Permission to update letters assigned to self'),
 ('letter:delete', 'Permission to delete letters'),
 ('letter:assign', 'Permission to assign letters to divisions/officers'),
 ('cabinet:read', 'Permission to read cabinet papers'),
@@ -33,9 +39,7 @@ INSERT INTO permissions (name, description) VALUES
 -- =================================================================
 -- Insert Roles
 -- =================================================================
-INSERT INTO roles (name, description) VALUES
-('SUPER_ADMIN', 'Super administrator with all system permissions'),
-('ADMIN', 'Administrator with most permissions'),
+INSERT INTO roles (name, description) VALUES ('ADMIN', 'Administrator with all system permissions'),
 ('POSTAL_OFFICER', 'Postal officer responsible for letter intake and routing'),
 ('DIVISION_HEAD', 'Head of a division with management permissions'),
 ('SUBJECT_OFFICER', 'Subject matter expert handling specific letters'),
@@ -45,18 +49,11 @@ INSERT INTO roles (name, description) VALUES
 -- =================================================================
 -- Insert Role Permissions
 -- =================================================================
--- Super Admin - All permissions
+-- Admin - All permissions
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id 
-FROM roles r CROSS JOIN permissions p 
-WHERE r.name = 'SUPER_ADMIN';
-
--- Admin - Most permissions except super admin functions
-INSERT INTO role_permissions (role_id, permission_id)
-SELECT r.id, p.id 
-FROM roles r CROSS JOIN permissions p 
-WHERE r.name = 'ADMIN' 
-AND p.name IN ('user:read', 'user:create', 'user:update', 'letter:read', 'letter:create', 'letter:update', 'letter:assign', 'cabinet:read', 'cabinet:create', 'cabinet:update', 'report:view', 'audit:view');
+FROM roles r CROSS JOIN permissions p
+WHERE r.name = 'ADMIN';
 
 -- Postal Officer
 INSERT INTO role_permissions (role_id, permission_id)
@@ -113,12 +110,6 @@ INSERT INTO divisions (name, description) VALUES
 -- =================================================================
 -- Note: All passwords are hashed version of "password"
 INSERT INTO users (username, email, password, full_name, phone_number, role_id, division_id, is_active, account_setup_required) VALUES
-
--- Super Admin
-('superadmin', 'superadmin@mohe.gov.lk', '$2a$10$Flj/pK//deNj6bQgVBzkv.q.K//M0tcMRFHcWVxcZKp5Q9W5QjBjK', 'System Super Administrator', '+94771234567', 
- (SELECT id FROM roles WHERE name = 'SUPER_ADMIN'), 
- (SELECT id FROM divisions WHERE name = 'IT Division'), 
- true, false),
 
 -- Administrators
 ('admin', 'admin@mohe.gov.lk', '$2a$10$Flj/pK//deNj6bQgVBzkv.q.K//M0tcMRFHcWVxcZKp5Q9W5QjBjK', 'System Administrator', '+94771234568', 

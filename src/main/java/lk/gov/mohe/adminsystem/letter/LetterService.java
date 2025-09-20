@@ -3,24 +3,26 @@ package lk.gov.mohe.adminsystem.letter;
 import lk.gov.mohe.adminsystem.attachment.Attachment;
 import lk.gov.mohe.adminsystem.attachment.AttachmentRepository;
 import lk.gov.mohe.adminsystem.attachment.ParentTypeEnum;
+import lk.gov.mohe.adminsystem.security.CurrentUserProvider;
 import lk.gov.mohe.adminsystem.storage.MinioStorageService;
 import lk.gov.mohe.adminsystem.user.User;
-import lk.gov.mohe.adminsystem.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class LetterService {
@@ -29,18 +31,68 @@ public class LetterService {
     private final AttachmentRepository attachmentRepository;
     private final LetterMapper letterMapper;
     private final MinioStorageService storageService;
-    private final UserRepository userRepository;
+    private final CurrentUserProvider currentUserProvider;
 
-    public Page<LetterDto> getLetters(Integer page,
-                                      Integer pageSize) {
+    public Page<LetterDto> getAccessibleLetters(
+        Integer userId,
+        Integer divisionId,
+        Collection<String> authorities,
+        Integer page,
+        Integer pageSize
+    ) {
         Pageable pageable = PageRequest.of(page, pageSize);
-        return letterRepository.findAll(pageable).map(letterMapper::toLetterDtoMin);
+        if (authorities.contains("letter:read:all")) {
+            return letterRepository.findAll(pageable).map(letterMapper::toLetterDtoMin);
+        }
+
+        Specification<Letter> spec = null;
+
+        if (authorities.contains("letter:read:unassigned")) {
+            spec = (root, query, cb) ->
+                cb.and(
+                    cb.isNull(root.get("assignedDivision")),
+                    cb.isNull(root.get("assignedUser"))
+                );
+        }
+
+        if (authorities.contains("letter:read:division")) {
+            Specification<Letter> divisionSpec = (root, query, cb) ->
+                cb.equal(root.get("assignedDivision").get("id"), divisionId);
+            spec = (spec == null) ? divisionSpec : spec.or(divisionSpec);
+        }
+
+        if (authorities.contains("letter:read:own")) {
+            Specification<Letter> ownSpec = (root, query, cb) ->
+                cb.equal(root.get("assignedUser").get("id"), userId);
+            spec = (spec == null) ? ownSpec : spec.or(ownSpec);
+        }
+
+        if (spec == null) {
+            // No permitted scope matched: return empty page to avoid unintended full
+            // access
+            log.warn("User [{}] with authorities {} attempted to access letters with no" +
+                " permitted scope.", userId, authorities);
+            return Page.empty(pageable);
+        }
+
+        return letterRepository.findAll(spec, pageable).map(letterMapper::toLetterDtoMin);
     }
 
-    public LetterDto getLetterById(Integer id) {
+    public LetterDto getLetterById(
+        Integer id,
+        Integer userId,
+        Integer divisionId,
+        Collection<String> authorities
+    ) {
         Letter letter = letterRepository.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                 "Letter not found with id: " + id));
+
+        if (!hasAccessToLetter(letter, userId, divisionId, authorities, "read")) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                "You do not have permission to access this letter");
+        }
+
         List<Attachment> attachments =
             attachmentRepository.findByParentTypeAndParentId(ParentTypeEnum.LETTER,
                 letter.getId());
@@ -49,8 +101,10 @@ public class LetterService {
     }
 
     @Transactional
-    public Letter createLetter(CreateOrUpdateLetterRequestDto request,
-                               MultipartFile[] attachments) {
+    public Letter createLetter(
+        CreateOrUpdateLetterRequestDto request,
+        MultipartFile[] attachments
+    ) {
         if (letterRepository.existsLetterByReference(request.reference())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                 "Reference already exists");
@@ -83,22 +137,35 @@ public class LetterService {
         return savedLetter;
     }
 
-    public void updateLetter(Integer id, CreateOrUpdateLetterRequestDto request) {
+    public void updateLetter(
+        Integer id,
+        CreateOrUpdateLetterRequestDto request,
+        Integer userId,
+        Integer divisionId,
+        Collection<String> authorities
+    ) {
         Letter letter = letterRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Letter not found with id: "
                 + id));
+
+        if (!hasAccessToLetter(letter, userId, divisionId, authorities, "update")) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                "You do not have permission to update this letter");
+        }
 
         letterMapper.updateEntityFromCreateOrUpdateLetterRequestDto(request, letter);
 
         letterRepository.save(letter);
     }
 
-    private void createLetterEvent(Letter letter, EventTypeEnum eventType,
-                                   Map<String, Object> eventDetails) {
+    private void createLetterEvent(
+        Letter letter, EventTypeEnum eventType,
+        Map<String, Object> eventDetails
+    ) {
         LetterEvent letterEvent = new LetterEvent();
         letterEvent.setLetter(letter);
 
-        User user = getCurrentUser();
+        User user = currentUserProvider.getCurrentUserOrThrow();
         letterEvent.setUser(user);
 
         letterEvent.setEventType(eventType);
@@ -106,20 +173,24 @@ public class LetterService {
         letterEventRepository.save(letterEvent);
     }
 
-    private User getCurrentUser() {
-        Authentication authentication =
-            SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
-                "Authentication is required");
-        }
-
-        String username = authentication.getName();
-        User user = userRepository.findByUsername(username);
-        if (user == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found");
-        }
-        return user;
+    private boolean hasAccessToLetter(
+        Letter letter,
+        Integer userId,
+        Integer divisionId,
+        Collection<String> authorities,
+        String action
+    ) {
+        boolean hasAllAccess = authorities.contains("letter:" + action + ":all");
+        boolean hasUnassignedAccess = authorities.contains("letter:" + action +
+            ":unassigned")
+            && letter.getAssignedDivision() == null
+            && letter.getAssignedUser() == null;
+        boolean hasDivisionAccess = authorities.contains("letter:" + action + ":division")
+            && letter.getAssignedDivision() != null
+            && letter.getAssignedDivision().getId().equals(divisionId);
+        boolean hasOwnAccess = authorities.contains("letter:" + action + ":own")
+            && letter.getAssignedUser() != null
+            && letter.getAssignedUser().getId().equals(userId);
+        return hasAllAccess || hasUnassignedAccess || hasDivisionAccess || hasOwnAccess;
     }
 }

@@ -152,8 +152,9 @@ public class AuthService {
             .expiresAt(now.plusSeconds(accessTokenValiditySeconds))
             .subject(user.getUsername())
             .claim("scope", scope)
-            .claim("user_id", user.getId())
-            .claim("full_name", user.getFullName())
+            .claim("userId", user.getId())
+            .claim("divisionId", user.getDivision().getId())
+            .claim("fullName", user.getFullName())
             .build();
 
         String accessToken =

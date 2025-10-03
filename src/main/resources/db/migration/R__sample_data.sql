@@ -8,33 +8,59 @@ TRUNCATE TABLE role_permissions RESTART IDENTITY CASCADE;
 TRUNCATE TABLE roles RESTART IDENTITY CASCADE;
 TRUNCATE TABLE permissions RESTART IDENTITY CASCADE;
 TRUNCATE TABLE divisions RESTART IDENTITY CASCADE;
+TRUNCATE TABLE permission_categories RESTART IDENTITY CASCADE;
 
+
+-- =================================================================
+-- Insert Permission Categories
+-- =================================================================
+INSERT INTO permission_categories (id,name, parent_id) VALUES
+(1,'User Management', NULL),
+(2,'Letter Management', NULL),
+(3,'Cabinet Paper Management', NULL),
+(4,'Division Management', NULL),
+(5,'User Read', 1),
+(6,'User Create', 1),
+(7,'User Update', 1),
+(8,'User Delete', 1),
+(9,'Letter Read', 2),
+(10,'Letter Create', 2),
+(11,'Letter Delete', 2),
+(12,'Letter Assign', 2),
+(13,'Cabinet Read', 3),
+(14,'Cabinet Create', 3),
+(15,'Cabinet Update', 3),
+(16,'Cabinet Delete', 3),
+(17,'Admin System', NULL),
+(18,'Report View', NULL),
+(19,'Audit View', NULL);
 -- =================================================================
 -- Insert Permissions
 -- =================================================================
-INSERT INTO permissions (name, description) VALUES
-('user:read', 'Permission to read user data'),
-('user:create', 'Permission to create new users'),
-('user:update', 'Permission to update user data'),
-('user:delete', 'Permission to delete users'),
-('letter:read:all', 'Permission to read all letters'),
-('letter:read:unassigned', 'Permission to read unassigned letters'),
-('letter:read:division', 'Permission to read letters assigned to own division'),
-('letter:read:own', 'Permission to read letters assigned to self'),
-('letter:create', 'Permission to create new letters'),
-('letter:update:all', 'Permission to update all letters'),
-('letter:update:unassigned', 'Permission to update unassigned letters'),
-('letter:update:division', 'Permission to update letters assigned to own division'),
-('letter:update:own', 'Permission to update letters assigned to self'),
-('letter:delete', 'Permission to delete letters'),
-('letter:assign', 'Permission to assign letters to divisions/officers'),
-('cabinet:read', 'Permission to read cabinet papers'),
-('cabinet:create', 'Permission to create cabinet papers'),
-('cabinet:update', 'Permission to update cabinet papers'),
-('cabinet:delete', 'Permission to delete cabinet papers'),
-('admin:system', 'Full system administration permissions'),
-('report:view', 'Permission to view reports'),
-('audit:view', 'Permission to view audit logs');
+INSERT INTO permissions (name,label,description,category_id) VALUES
+('user:read','User Read', 'Permission to read user data',1),
+('user:create','User Create', 'Permission to create new users',1),
+('user:update','User Update', 'Permission to update user data',1),
+('user:delete','User Delete', 'Permission to delete users',1),
+('letter:read:all','Letter Read All', 'Permission to read all letters',9),
+('letter:read:unassigned','Letter Read Unassigned', 'Permission to read unassigned letters',9),
+('letter:read:division','Letter Read Division', 'Permission to read letters assigned to own division',9),
+('letter:read:own','Letter Read Own', 'Permission to read letters assigned to self',9),
+('letter:create','Letter Create','Permission to create new letters',2),
+('letter:update', 'Letter Update', 'Permission to update letters',2),
+('letter:update:all','Letter Update All', 'Permission to update all letters',2),
+('letter:update:unassigned','Letter Update Unassigned', 'Permission to update unassigned letters',2),
+('letter:update:division','Letter Update Division', 'Permission to update letters assigned to own division',2),
+('letter:update:own', 'Letter Update Own','Permission to update letters assigned to self',2),
+('letter:delete', 'Letter Delete','Permission to delete letters',2),
+('letter:assign', 'Letter Assign', 'Permission to assign letters to divisions/officers',2),
+('cabinet:read', 'Cabinet Paper Read','Permission to read cabinet papers',3),
+('cabinet:create', 'Cabinet Paper Create','Permission to create cabinet papers',3),
+('cabinet:update','Cabinet Paper Update', 'Permission to update cabinet papers',3),
+('cabinet:delete', 'Cabinet Paper Delete','Permission to delete cabinet papers',3),
+('admin:system', 'Admin System','Full system administration permissions',NULL),
+('report:view', 'Report View','Permission to view reports',NULL),
+('audit:view', 'Audit View','Permission to view audit logs',NULL);
 
 -- =================================================================
 -- Insert Roles

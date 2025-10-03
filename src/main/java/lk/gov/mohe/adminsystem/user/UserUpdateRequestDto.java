@@ -9,7 +9,7 @@ import jakarta.validation.constraints.Pattern;
 public record UserUpdateRequestDto(
 
         @NotBlank(message = "Full name must not be blank")
-        @JsonProperty("fullName")
+        @JsonProperty("username")
         String username,
 
         @NotBlank(message = "Email must not be blank")

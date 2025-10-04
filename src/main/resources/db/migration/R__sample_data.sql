@@ -8,33 +8,60 @@ TRUNCATE TABLE role_permissions RESTART IDENTITY CASCADE;
 TRUNCATE TABLE roles RESTART IDENTITY CASCADE;
 TRUNCATE TABLE permissions RESTART IDENTITY CASCADE;
 TRUNCATE TABLE divisions RESTART IDENTITY CASCADE;
+TRUNCATE TABLE permission_categories RESTART IDENTITY CASCADE;
+
+-- =================================================================
+-- Insert Permission Categories
+-- =================================================================
+INSERT INTO permission_categories (id, name, parent_id) VALUES
+(1, 'User Management', NULL),
+(2, 'Letter Management', NULL),
+(3, 'Letter Reading', 2),
+(4, 'Letter Creation', 2),
+(5, 'Letter Updating', 2),
+(6, 'Letter Assignment', 2),
+(7, 'Letter Priority', 2),
+(8, 'Letter Attachments', 2),
+(9, 'Letter Completion', 2);
 
 -- =================================================================
 -- Insert Permissions
 -- =================================================================
-INSERT INTO permissions (name, description) VALUES
-('user:read', 'Permission to read user data'),
-('user:create', 'Permission to create new users'),
-('user:update', 'Permission to update user data'),
-('user:delete', 'Permission to delete users'),
-('letter:read:all', 'Permission to read all letters'),
-('letter:read:unassigned', 'Permission to read unassigned letters'),
-('letter:read:division', 'Permission to read letters assigned to own division'),
-('letter:read:own', 'Permission to read letters assigned to self'),
-('letter:create', 'Permission to create new letters'),
-('letter:update:all', 'Permission to update all letters'),
-('letter:update:unassigned', 'Permission to update unassigned letters'),
-('letter:update:division', 'Permission to update letters assigned to own division'),
-('letter:update:own', 'Permission to update letters assigned to self'),
-('letter:delete', 'Permission to delete letters'),
-('letter:assign', 'Permission to assign letters to divisions/officers'),
-('cabinet:read', 'Permission to read cabinet papers'),
-('cabinet:create', 'Permission to create cabinet papers'),
-('cabinet:update', 'Permission to update cabinet papers'),
-('cabinet:delete', 'Permission to delete cabinet papers'),
-('admin:system', 'Full system administration permissions'),
-('report:view', 'Permission to view reports'),
-('audit:view', 'Permission to view audit logs');
+INSERT INTO permissions (name, label, description, category_id) VALUES
+('user:read', 'Read Users', 'Permission to read user information', 1),
+('user:create', 'Create Users', 'Permission to create new users', 1),
+('user:update', 'Update Users', 'Permission to update existing users', 1),
+('user:delete', 'Delete Users', 'Permission to delete users', 1),
+
+('letter:all:read', 'Read All Letters', 'Permission to read every letter', 3),
+('letter:unassigned:read', 'Read Unassigned Letters', 'Permission to read unassigned letters', 3),
+('letter:division:read', 'Read Division Letters', 'Permission to read letters in own division', 3),
+('letter:own:read', 'Read Own Letters', 'Permission to read letters assigned to self', 3),
+
+('letter:create', 'Create Letters', 'Permission to create new letters', 4),
+
+('letter:all:update', 'Update All Letters', 'Permission to update every letter', 5),
+('letter:unassigned:update', 'Update Unassigned Letters', 'Permission to update unassigned letters', 5),
+('letter:division:update', 'Update Division Letters', 'Permission to update letters in own division', 5),
+('letter:own:update', 'Update Own Letters', 'Permission to update letters assigned to self', 5),
+
+('letter:assign:division', 'Assign Letters to Divisions', 'Permission to assign letters to divisions', 6),
+('letter:assign:user', 'Assign Letters to Users', 'Permission to assign letters to specific users', 6),
+
+('letter:all:update:priority', 'Set Priority for All Letters', 'Permission to change priority on every letter', 7),
+('letter:unassigned:update:priority', 'Set Priority for Unassigned Letters', 'Permission to change priority on unassigned letters', 7),
+('letter:division:update:priority', 'Set Priority for Division Letters', 'Permission to change priority on letters in own division', 7),
+('letter:own:update:priority', 'Set Priority for Own Letters', 'Permission to change priority on letters assigned to self', 7),
+
+('letter:all:add:attachments', 'Add Attachments to All Letters', 'Permission to add attachments to every letter', 8),
+('letter:unassigned:add:attachments', 'Add Attachments to Unassigned Letters', 'Permission to add attachments to unassigned letters', 8),
+('letter:division:add:attachments', 'Add Attachments to Division Letters', 'Permission to add attachments to letters in own division', 8),
+('letter:own:add:attachments', 'Add Attachments to Own Letters', 'Permission to add attachments to letters assigned to self', 8),
+
+('letter:all:markcomplete', 'Complete All Letters', 'Permission to mark every letter as complete', 9),
+('letter:unassigned:markcomplete', 'Complete Unassigned Letters', 'Permission to mark unassigned letters as complete', 9),
+('letter:division:markcomplete', 'Complete Division Letters', 'Permission to mark letters in own division as complete', 9),
+('letter:own:markcomplete', 'Complete Own Letters', 'Permission to mark letters assigned to self as complete', 9);
 
 -- =================================================================
 -- Insert Roles
@@ -60,35 +87,7 @@ INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id 
 FROM roles r CROSS JOIN permissions p 
 WHERE r.name = 'POSTAL_OFFICER' 
-AND p.name IN ('letter:read', 'letter:create', 'letter:update', 'letter:assign', 'user:read');
-
--- Division Head
-INSERT INTO role_permissions (role_id, permission_id)
-SELECT r.id, p.id 
-FROM roles r CROSS JOIN permissions p 
-WHERE r.name = 'DIVISION_HEAD' 
-AND p.name IN ('letter:read', 'letter:update', 'letter:assign', 'cabinet:read', 'cabinet:create', 'cabinet:update', 'user:read', 'report:view');
-
--- Subject Officer
-INSERT INTO role_permissions (role_id, permission_id)
-SELECT r.id, p.id 
-FROM roles r CROSS JOIN permissions p 
-WHERE r.name = 'SUBJECT_OFFICER' 
-AND p.name IN ('letter:read', 'letter:update', 'cabinet:read', 'user:read');
-
--- Clerk
-INSERT INTO role_permissions (role_id, permission_id)
-SELECT r.id, p.id 
-FROM roles r CROSS JOIN permissions p 
-WHERE r.name = 'CLERK' 
-AND p.name IN ('letter:read', 'letter:create', 'user:read');
-
--- Read Only
-INSERT INTO role_permissions (role_id, permission_id)
-SELECT r.id, p.id 
-FROM roles r CROSS JOIN permissions p 
-WHERE r.name = 'READ_ONLY' 
-AND p.name IN ('letter:read', 'cabinet:read', 'user:read', 'report:view');
+AND p.name IN ('letter:unassigned:read', 'letter:unassigned:update', 'letter:create', 'letter:assign:division');
 
 -- =================================================================
 -- Insert Divisions

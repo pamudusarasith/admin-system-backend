@@ -5,15 +5,14 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.ColumnDefault;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "permissions")
-public class Permission {
+@Table(name = "permission_categories")
+public class PermissionCategory {
     @Id
-    @ColumnDefault("nextval('permissions_id_seq')")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Integer id;
 
@@ -22,15 +21,7 @@ public class Permission {
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
-    @Size(max = 100)
-    @NotNull
-    @Column(name = "label", nullable = false, length = 100)
-    private String label;
-
-    @Column(name = "description", length = Integer.MAX_VALUE)
-    private String description;
-
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id")
-    private PermissionCategory category;
+    @JoinColumn(name = "parent_id")
+    private PermissionCategory parent;
 }

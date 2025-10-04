@@ -23,8 +23,8 @@ public class LetterController {
     private final LetterService letterService;
 
     @GetMapping("/letters")
-    @PreAuthorize("hasAnyAuthority('letter:read:all', 'letter:read:unassigned', " +
-        "'letter:read:division', 'letter:read:own')")
+    @PreAuthorize("hasAnyAuthority('letter:all:read', 'letter:unassigned:read', " +
+        "'letter:division:read', 'letter:own:read')")
     public ApiResponse<List<LetterDto>> getLetters(
         @RequestParam(required = false, defaultValue = "0") Integer page,
         @RequestParam(required = false, defaultValue = "10") Integer pageSize,
@@ -45,8 +45,8 @@ public class LetterController {
     }
 
     @GetMapping("/letters/{id}")
-    @PreAuthorize("hasAnyAuthority('letter:read:all', 'letter:read:unassigned', " +
-        "'letter:read:division', 'letter:read:own')")
+    @PreAuthorize("hasAnyAuthority('letter:all:read', 'letter:unassigned:read', " +
+        "'letter:division:read', 'letter:own:read')")
     public ApiResponse<LetterDto> getLetterById(
         @PathVariable Integer id,
         Authentication authentication
@@ -77,8 +77,8 @@ public class LetterController {
     }
 
     @PutMapping("/letters/{id}")
-    @PreAuthorize("hasAnyAuthority('letter:update:all', 'letter:update:unassigned', " +
-        "'letter:update:division', 'letter:update:own')")
+    @PreAuthorize("hasAnyAuthority('letter:all:update', 'letter:unassigned:update', " +
+        "'letter:division:update', 'letter:own:update')")
     public ApiResponse<Void> updateLetter(
         @PathVariable Integer id,
         @Valid @RequestBody CreateOrUpdateLetterRequestDto request,

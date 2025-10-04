@@ -41,13 +41,13 @@ public class LetterService {
         Integer pageSize
     ) {
         Pageable pageable = PageRequest.of(page, pageSize);
-        if (authorities.contains("letter:read:all")) {
+        if (authorities.contains("letter:all:read")) {
             return letterRepository.findAll(pageable).map(letterMapper::toLetterDtoMin);
         }
 
         Specification<Letter> spec = null;
 
-        if (authorities.contains("letter:read:unassigned")) {
+        if (authorities.contains("letter:unassigned:read")) {
             spec = (root, query, cb) ->
                 cb.and(
                     cb.isNull(root.get("assignedDivision")),
@@ -55,13 +55,13 @@ public class LetterService {
                 );
         }
 
-        if (authorities.contains("letter:read:division")) {
+        if (authorities.contains("letter:division:read")) {
             Specification<Letter> divisionSpec = (root, query, cb) ->
                 cb.equal(root.get("assignedDivision").get("id"), divisionId);
             spec = (spec == null) ? divisionSpec : spec.or(divisionSpec);
         }
 
-        if (authorities.contains("letter:read:own")) {
+        if (authorities.contains("letter:own:read")) {
             Specification<Letter> ownSpec = (root, query, cb) ->
                 cb.equal(root.get("assignedUser").get("id"), userId);
             spec = (spec == null) ? ownSpec : spec.or(ownSpec);
@@ -180,15 +180,14 @@ public class LetterService {
         Collection<String> authorities,
         String action
     ) {
-        boolean hasAllAccess = authorities.contains("letter:" + action + ":all");
-        boolean hasUnassignedAccess = authorities.contains("letter:" + action +
-            ":unassigned")
+        boolean hasAllAccess = authorities.contains("letter:all:" + action);
+        boolean hasUnassignedAccess = authorities.contains("letter:unassigned:" + action)
             && letter.getAssignedDivision() == null
             && letter.getAssignedUser() == null;
-        boolean hasDivisionAccess = authorities.contains("letter:" + action + ":division")
+        boolean hasDivisionAccess = authorities.contains("letter:division:" + action)
             && letter.getAssignedDivision() != null
             && letter.getAssignedDivision().getId().equals(divisionId);
-        boolean hasOwnAccess = authorities.contains("letter:" + action + ":own")
+        boolean hasOwnAccess = authorities.contains("letter:own:" + action)
             && letter.getAssignedUser() != null
             && letter.getAssignedUser().getId().equals(userId);
         return hasAllAccess || hasUnassignedAccess || hasDivisionAccess || hasOwnAccess;

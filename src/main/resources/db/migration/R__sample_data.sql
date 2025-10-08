@@ -22,7 +22,8 @@ INSERT INTO permission_categories (id, name, parent_id) VALUES
 (6, 'Letter Assignment', 2),
 (7, 'Letter Priority', 2),
 (8, 'Letter Attachments', 2),
-(9, 'Letter Completion', 2);
+(9, 'Letter Completion', 2),
+(10, 'Letter Notes', 2);
 
 -- =================================================================
 -- Insert Permissions
@@ -61,7 +62,12 @@ INSERT INTO permissions (name, label, description, category_id) VALUES
 ('letter:all:markcomplete', 'Complete All Letters', 'Permission to mark every letter as complete', 9),
 ('letter:unassigned:markcomplete', 'Complete Unassigned Letters', 'Permission to mark unassigned letters as complete', 9),
 ('letter:division:markcomplete', 'Complete Division Letters', 'Permission to mark letters in own division as complete', 9),
-('letter:own:markcomplete', 'Complete Own Letters', 'Permission to mark letters assigned to self as complete', 9);
+('letter:own:markcomplete', 'Complete Own Letters', 'Permission to mark letters assigned to self as complete', 9),
+
+('letter:all:add:note', 'Add Notes to All Letters', 'Permission to add notes to every letter', 10),
+('letter:unassigned:add:note', 'Add Notes to Unassigned Letters', 'Permission to add notes to unassigned letters', 10),
+('letter:division:add:note', 'Add Notes to Division Letters', 'Permission to add notes to letters in own division', 10),
+('letter:own:add:note', 'Add Notes to Own Letters', 'Permission to add notes to letters assigned to self', 10);
 
 -- =================================================================
 -- Insert Roles

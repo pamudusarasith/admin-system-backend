@@ -2,6 +2,8 @@ package lk.gov.mohe.adminsystem.letter;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import lk.gov.mohe.adminsystem.attachment.AttachmentParent;
+import lk.gov.mohe.adminsystem.attachment.ParentTypeEnum;
 import lk.gov.mohe.adminsystem.user.User;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,7 +18,7 @@ import java.util.Map;
 @Setter
 @Entity
 @Table(name = "letter_events")
-public class LetterEvent {
+public class LetterEvent implements AttachmentParent {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
@@ -45,4 +47,8 @@ public class LetterEvent {
     @Column(name = "created_at")
     @CreationTimestamp
     private Instant createdAt;
+
+    public ParentTypeEnum getType() {
+        return ParentTypeEnum.LETTER_EVENT;
+    }
 }

@@ -8,6 +8,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
@@ -29,6 +30,15 @@ public class GlobalExceptionHandler {
             errors.add(errorInfo);
         });
         return ApiResponse.error("Validation failed", errors);
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    public ApiResponse<Void> handleMissingServletRequestPart(MissingServletRequestPartException ex) {
+        String partName = ex.getRequestPartName();
+        String message = "Missing required part: " + partName;
+        List<ErrorInfo> errors = List.of(new ErrorInfo(partName, message));
+        return ApiResponse.error(message, errors);
     }
 
     @ExceptionHandler(ResponseStatusException.class)

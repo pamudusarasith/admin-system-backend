@@ -62,3 +62,12 @@ custom:
     access-key: ${MINIO_ACCESS_KEY}
     secret-key: ${MINIO_SECRET_KEY}
     bucket: ${MINIO_BUCKET}
+
+  attachments:
+    accepted-mime-types: >
+      text/plain,
+      image/png,
+      image/jpeg,
+      application/pdf,
+      application/msword,
+      application/vnd.openxmlformats-officedocument.wordprocessingml.document

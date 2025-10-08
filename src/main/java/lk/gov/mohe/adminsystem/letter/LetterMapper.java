@@ -18,9 +18,19 @@ import java.util.Map;
 @Mapper(componentModel = "spring", uses = {UserMapper.class, DivisionMapper.class,
     AttachmentMapper.class})
 public abstract class LetterMapper {
-    @Autowired
-    AttachmentRepository attachmentRepository;
+    protected AttachmentMapper attachmentMapper;
+    protected AttachmentRepository attachmentRepository;
     ParentTypeEnum letterParentType = ParentTypeEnum.LETTER;
+
+    @Autowired
+    protected void setAttachmentRepository(AttachmentRepository attachmentRepository) {
+        this.attachmentRepository = attachmentRepository;
+    }
+
+    @Autowired
+    protected void setAttachmentMapper(AttachmentMapper attachmentMapper) {
+        this.attachmentMapper = attachmentMapper;
+    }
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "assignedDivision", ignore = true)
@@ -94,5 +104,27 @@ public abstract class LetterMapper {
     }
 
     @Mapping(target = "user", source = "user", qualifiedByName = "toUserDtoMin")
+    @Mapping(target = "eventDetails", expression = "java( " +
+        "mapEventDetailsWithAttachments(event.getEventDetails()) )")
     abstract LetterEventDto toLetterEventDto(LetterEvent event);
+
+    Map<String, Object> mapEventDetailsWithAttachments(Map<String, Object> eventDetails) {
+        if (eventDetails == null) {
+            return null;
+        }
+
+        if (!eventDetails.containsKey("attachments")
+            || !(eventDetails.get("attachments") instanceof List)
+            || ((List<?>) eventDetails.get("attachments")).isEmpty()
+            || !(((List<?>) eventDetails.get("attachments")).getFirst() instanceof Attachment))
+            return eventDetails;
+
+        @SuppressWarnings("unchecked") // Safe cast due to the above checks
+        List<Attachment> attachments = (List<Attachment>) eventDetails.get("attachments");
+        eventDetails.put("attachments", attachments.stream()
+            .map(attachmentMapper::toDto)
+            .toList());
+
+        return eventDetails;
+    }
 }

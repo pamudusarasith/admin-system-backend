@@ -1,6 +1,7 @@
 package lk.gov.mohe.adminsystem.letter;
 
 import lk.gov.mohe.adminsystem.attachment.Attachment;
+import lk.gov.mohe.adminsystem.attachment.AttachmentParent;
 import lk.gov.mohe.adminsystem.attachment.AttachmentRepository;
 import lk.gov.mohe.adminsystem.attachment.ParentTypeEnum;
 import lk.gov.mohe.adminsystem.security.CurrentUserProvider;
@@ -21,6 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 @Service
@@ -32,6 +34,15 @@ public class LetterService {
     private final LetterMapper letterMapper;
     private final MinioStorageService storageService;
     private final CurrentUserProvider currentUserProvider;
+
+    private final Set<String> acceptedMimeTypes = Set.of(
+        "text/plain",
+        "image/png",
+        "image/jpeg",
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    );
 
     public Page<LetterDto> getAccessibleLetters(
         Integer userId,
@@ -97,6 +108,17 @@ public class LetterService {
             attachmentRepository.findByParentTypeAndParentId(ParentTypeEnum.LETTER,
                 letter.getId());
         List<LetterEvent> events = letterEventRepository.findByLetterId(letter.getId());
+
+        for (LetterEvent event : events) {
+            if (event.getEventType() != EventTypeEnum.ADD_NOTE)
+                continue;
+            List<Attachment> eventAttachments = attachmentRepository
+                .findByParentTypeAndParentId(ParentTypeEnum.LETTER_EVENT, event.getId());
+            Map<String, Object> details = event.getEventDetails();
+            details.put("attachments", eventAttachments);
+            event.setEventDetails(details);
+        }
+
         return letterMapper.toLetterDtoFull(letter, attachments, events);
     }
 
@@ -114,20 +136,7 @@ public class LetterService {
         letter.setStatus(StatusEnum.NEW);
         Letter savedLetter = letterRepository.save(letter);
 
-        if (attachments != null) {
-            for (MultipartFile attachment : attachments) {
-                if (attachment.isEmpty()) {
-                    throw new IllegalArgumentException("Attachment cannot be empty");
-                }
-                Attachment newAttachment = new Attachment();
-                newAttachment.setFileName(attachment.getOriginalFilename());
-                String objectName = storageService.upload("letters", attachment);
-                newAttachment.setFilePath(objectName);
-                newAttachment.setFileType(attachment.getContentType());
-                newAttachment.attachToParent(savedLetter);
-                attachmentRepository.save(newAttachment);
-            }
-        }
+        saveAttachments(savedLetter, attachments);
 
         Map<String, Object> eventDetails = Map.of(
             "newStatus", savedLetter.getStatus().toString()
@@ -145,8 +154,8 @@ public class LetterService {
         Collection<String> authorities
     ) {
         Letter letter = letterRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Letter not found with id: "
-                + id));
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                "Letter not found with id: " + id));
 
         if (!hasAccessToLetter(letter, userId, divisionId, authorities, "update")) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
@@ -158,7 +167,35 @@ public class LetterService {
         letterRepository.save(letter);
     }
 
-    private void createLetterEvent(
+    @Transactional
+    public void addNote(
+        Integer letterId,
+        String content,
+        MultipartFile[] attachments,
+        Integer userId,
+        Integer divisionId,
+        Collection<String> authorities
+    ) {
+        Letter letter = letterRepository.findById(letterId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                "Letter not found with id: " + letterId));
+
+        if (!hasAccessToLetter(letter, userId, divisionId, authorities, "add:note")) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                "You do not have permission to add a note to this letter");
+        }
+
+        Map<String, Object> eventDetails = Map.of(
+            "content", content
+        );
+
+        LetterEvent letterEvent = createLetterEvent(letter, EventTypeEnum.ADD_NOTE,
+            eventDetails);
+
+        saveAttachments(letterEvent, attachments);
+    }
+
+    private LetterEvent createLetterEvent(
         Letter letter, EventTypeEnum eventType,
         Map<String, Object> eventDetails
     ) {
@@ -170,7 +207,36 @@ public class LetterService {
 
         letterEvent.setEventType(eventType);
         letterEvent.setEventDetails(eventDetails);
-        letterEventRepository.save(letterEvent);
+        return letterEventRepository.save(letterEvent);
+    }
+
+    private void saveAttachments(
+        AttachmentParent parent, MultipartFile[] attachments
+    ) {
+        if (attachments != null) {
+            for (MultipartFile attachment : attachments) {
+                if (attachment.isEmpty()) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "One of the attachments is empty");
+                }
+                if (!acceptedMimeTypes.contains(attachment.getContentType())) {
+                    throw new ResponseStatusException(HttpStatus.UNSUPPORTED_MEDIA_TYPE,
+                        "Attachment type " + attachment.getContentType() + " is not " +
+                            "supported");
+                }
+                Attachment newAttachment = new Attachment();
+                newAttachment.setFileName(attachment.getOriginalFilename());
+                String folder = switch (parent.getType()) {
+                    case ParentTypeEnum.LETTER -> "letters";
+                    case ParentTypeEnum.LETTER_EVENT -> "events";
+                };
+                String objectName = storageService.upload(folder, attachment);
+                newAttachment.setFilePath(objectName);
+                newAttachment.setFileType(attachment.getContentType());
+                newAttachment.attachToParent(parent);
+                attachmentRepository.save(newAttachment);
+            }
+        }
     }
 
     private boolean hasAccessToLetter(

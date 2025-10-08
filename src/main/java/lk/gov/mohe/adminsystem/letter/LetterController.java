@@ -1,6 +1,7 @@
 package lk.gov.mohe.adminsystem.letter;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lk.gov.mohe.adminsystem.util.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -96,5 +97,30 @@ public class LetterController {
             jwt.getClaim("divisionId"),
             authorities);
         return ApiResponse.message("Letter updated successfully");
+    }
+
+    @PostMapping(value = "/letters/{id}/notes", consumes =
+        MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyAuthority('letter:all:add:note', 'letter:unassigned:add:note'," +
+        " 'letter:division:add:note', 'letter:own:add:note')")
+    public ApiResponse<Void> addNote(
+        @PathVariable Integer id,
+        @RequestPart("content") @NotBlank(message = "Content is required") String content,
+        @RequestPart(value = "attachments", required = false) MultipartFile[] attachments,
+        Authentication authentication
+    ) {
+        Jwt jwt = (Jwt) authentication.getPrincipal();
+        Collection<String> authorities = authentication.getAuthorities().stream()
+            .map(GrantedAuthority::getAuthority)
+            .toList();
+
+        letterService.addNote(
+            id,
+            content,
+            attachments,
+            jwt.getClaim("userId"),
+            jwt.getClaim("divisionId"),
+            authorities);
+        return ApiResponse.message("Note added successfully");
     }
 }

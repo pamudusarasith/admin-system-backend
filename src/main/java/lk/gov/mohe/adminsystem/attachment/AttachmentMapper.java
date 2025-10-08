@@ -5,6 +5,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.List;
+
 @Mapper(componentModel = "spring")
 public abstract class AttachmentMapper {
     @Autowired
@@ -13,4 +15,6 @@ public abstract class AttachmentMapper {
     @Mapping(target = "url", expression = "java( minioStorageService" +
         ".getFileUrl(attachment.getFilePath()) )")
     public abstract AttachmentDto toDto(Attachment attachment);
+
+    public abstract List<AttachmentDto> toDtoList(List<Attachment> attachments);
 }

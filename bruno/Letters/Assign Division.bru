@@ -1,0 +1,21 @@
+meta {
+  name: Assign Division
+  type: http
+  seq: 5
+}
+
+put {
+  url: {{base_url}}/letters/1/division
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "divisionId": 1
+  }
+}
+
+settings {
+  encodeUrl: true
+}

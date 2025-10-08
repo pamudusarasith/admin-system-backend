@@ -123,4 +123,14 @@ public class LetterController {
             authorities);
         return ApiResponse.message("Note added successfully");
     }
+
+    @PutMapping("/letters/{letterId}/division")
+    @PreAuthorize("hasAuthority('letter:assign:division')")
+    public ApiResponse<Void> assignDivision(
+        @PathVariable Integer letterId,
+        @Valid @RequestBody AssignDivisionRequestDto request
+    ) {
+        letterService.assignDivision(letterId, request.divisionId());
+        return ApiResponse.message("Division assigned successfully");
+    }
 }

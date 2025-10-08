@@ -1,9 +1,8 @@
 package lk.gov.mohe.adminsystem.letter;
 
-import lk.gov.mohe.adminsystem.attachment.Attachment;
-import lk.gov.mohe.adminsystem.attachment.AttachmentMapper;
-import lk.gov.mohe.adminsystem.attachment.AttachmentRepository;
-import lk.gov.mohe.adminsystem.attachment.ParentTypeEnum;
+import lk.gov.mohe.adminsystem.attachment.*;
+import lk.gov.mohe.adminsystem.division.Division;
+import lk.gov.mohe.adminsystem.division.DivisionDto;
 import lk.gov.mohe.adminsystem.division.DivisionMapper;
 import lk.gov.mohe.adminsystem.user.UserMapper;
 import org.mapstruct.Mapper;
@@ -18,19 +17,13 @@ import java.util.Map;
 @Mapper(componentModel = "spring", uses = {UserMapper.class, DivisionMapper.class,
     AttachmentMapper.class})
 public abstract class LetterMapper {
+    @Autowired
     protected AttachmentMapper attachmentMapper;
+    @Autowired
+    protected DivisionMapper divisionMapper;
+    @Autowired
     protected AttachmentRepository attachmentRepository;
     ParentTypeEnum letterParentType = ParentTypeEnum.LETTER;
-
-    @Autowired
-    protected void setAttachmentRepository(AttachmentRepository attachmentRepository) {
-        this.attachmentRepository = attachmentRepository;
-    }
-
-    @Autowired
-    protected void setAttachmentMapper(AttachmentMapper attachmentMapper) {
-        this.attachmentMapper = attachmentMapper;
-    }
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "assignedDivision", ignore = true)
@@ -104,27 +97,32 @@ public abstract class LetterMapper {
     }
 
     @Mapping(target = "user", source = "user", qualifiedByName = "toUserDtoMin")
-    @Mapping(target = "eventDetails", expression = "java( " +
-        "mapEventDetailsWithAttachments(event.getEventDetails()) )")
     abstract LetterEventDto toLetterEventDto(LetterEvent event);
 
-    Map<String, Object> mapEventDetailsWithAttachments(Map<String, Object> eventDetails) {
-        if (eventDetails == null) {
+    EventDetailsDto toEventDetailsDto(Map<String, Object> eventDetails) {
+        if (eventDetails == null || eventDetails.isEmpty()) {
             return null;
         }
 
-        if (!eventDetails.containsKey("attachments")
-            || !(eventDetails.get("attachments") instanceof List)
-            || ((List<?>) eventDetails.get("attachments")).isEmpty()
-            || !(((List<?>) eventDetails.get("attachments")).getFirst() instanceof Attachment))
-            return eventDetails;
+        String newStatus = (String) eventDetails.get("newStatus");
+        String content = (String) eventDetails.get("content");
 
-        @SuppressWarnings("unchecked") // Safe cast due to the above checks
-        List<Attachment> attachments = (List<Attachment>) eventDetails.get("attachments");
-        eventDetails.put("attachments", attachments.stream()
-            .map(attachmentMapper::toDto)
-            .toList());
+        List<AttachmentDto> attachments = null;
+        Object attachmentsObj = eventDetails.get("attachments");
+        if (attachmentsObj instanceof List<?>) {
+            @SuppressWarnings("unchecked")
+            List<Attachment> attachmentEntities = (List<Attachment>) attachmentsObj;
+            attachments = attachmentEntities.stream()
+                .map(attachmentMapper::toDto)
+                .toList();
+        }
 
-        return eventDetails;
+        DivisionDto assignedDivision = null;
+        Object divisionObj = eventDetails.get("assignedDivision");
+        if (divisionObj instanceof Division) {
+            assignedDivision = divisionMapper.toDto((Division) divisionObj);
+        }
+
+        return new EventDetailsDto(newStatus, content, attachments, assignedDivision);
     }
 }

@@ -9,4 +9,7 @@ public interface AttachmentRepository extends JpaRepository<Attachment, Integer>
 
     List<Attachment> findByParentTypeAndParentId(ParentTypeEnum parentType,
                                                  Integer parentId);
+
+    List<Attachment> findByParentTypeAndParentIdIn(ParentTypeEnum parentTypeEnum,
+                                                   List<Integer> parentIds);
 }

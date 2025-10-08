@@ -9,6 +9,7 @@ import lk.gov.mohe.adminsystem.storage.MinioStorageService;
 import lk.gov.mohe.adminsystem.user.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +24,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -35,14 +37,8 @@ public class LetterService {
     private final MinioStorageService storageService;
     private final CurrentUserProvider currentUserProvider;
 
-    private final Set<String> acceptedMimeTypes = Set.of(
-        "text/plain",
-        "image/png",
-        "image/jpeg",
-        "application/pdf",
-        "application/msword",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    );
+    @Value("${custom.attachments.accepted-mime-types}")
+    private final Set<String> acceptedMimeTypes;
 
     public Page<LetterDto> getAccessibleLetters(
         Integer userId,
@@ -109,11 +105,25 @@ public class LetterService {
                 letter.getId());
         List<LetterEvent> events = letterEventRepository.findByLetterId(letter.getId());
 
+        // Collect all event IDs for ADD_NOTE events
+        List<Integer> addNoteEventIds = events.stream()
+            .filter(e -> e.getEventType() == EventTypeEnum.ADD_NOTE)
+            .map(LetterEvent::getId)
+            .toList();
+
+        // Fetch all attachments for these event IDs in one query
+        List<Attachment> allEventAttachments = addNoteEventIds.isEmpty() ? List.of() :
+            attachmentRepository.findByParentTypeAndParentIdIn(ParentTypeEnum.LETTER_EVENT, addNoteEventIds);
+
+        // Map event ID to its attachments
+        Map<Integer, List<Attachment>> attachmentsByEventId = allEventAttachments.stream()
+            .collect(Collectors.groupingBy(Attachment::getParentId));
+
         for (LetterEvent event : events) {
             if (event.getEventType() != EventTypeEnum.ADD_NOTE)
                 continue;
-            List<Attachment> eventAttachments = attachmentRepository
-                .findByParentTypeAndParentId(ParentTypeEnum.LETTER_EVENT, event.getId());
+            List<Attachment> eventAttachments =
+                attachmentsByEventId.getOrDefault(event.getId(), List.of());
             Map<String, Object> details = event.getEventDetails();
             details.put("attachments", eventAttachments);
             event.setEventDetails(details);

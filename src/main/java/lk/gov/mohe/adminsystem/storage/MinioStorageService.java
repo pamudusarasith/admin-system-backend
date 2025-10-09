@@ -5,6 +5,7 @@ import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MinioStorageService {
@@ -43,6 +45,7 @@ public class MinioStorageService {
             }
             return objectName;
         } catch (Exception e) {
+            log.error("Failed to upload file: {}", file.getOriginalFilename(), e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Failed to upload file");
         }
@@ -62,6 +65,7 @@ public class MinioStorageService {
                             .expiry(expiresInSeconds)
                             .build());
         } catch (Exception e) {
+            log.error("Failed to generate a URL for object: {}", objectName, e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Failed to generate a URL");
         }

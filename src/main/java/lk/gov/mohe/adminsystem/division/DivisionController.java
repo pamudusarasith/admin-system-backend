@@ -1,17 +1,13 @@
 package lk.gov.mohe.adminsystem.division;
 
+import jakarta.validation.Valid;
+import lk.gov.mohe.adminsystem.util.ApiResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,11 +16,16 @@ import java.util.Optional;
 public class DivisionController {
 
     private final DivisionRepository divisionRepository;
+    private final DivisionService divisionService;
 
     @GetMapping("/divisions")
-    public ResponseEntity<List<Division>> getAllDivisions() {
-        List<Division> divisions = divisionRepository.findAll();
-        return ResponseEntity.ok(divisions);
+    public ApiResponse<List<DivisionDto>> getDivisions(
+        @RequestParam(defaultValue = "") String query,
+        @RequestParam(defaultValue = "0") Integer page,
+        @RequestParam(defaultValue = "10") Integer pageSize
+    ) {
+        Page<DivisionDto> divisions = divisionService.getDivisions(query, page, pageSize);
+        return ApiResponse.paged(divisions);
     }
 
     @PostMapping("/divisions")

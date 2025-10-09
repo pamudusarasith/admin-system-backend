@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +20,8 @@ public class DivisionController {
     private final DivisionService divisionService;
 
     @GetMapping("/divisions")
+    // Searching divisions is required for assigning letters to divisions
+    @PreAuthorize("hasAnyAuthority('division:read', 'letter:assign:division')")
     public ApiResponse<List<DivisionDto>> getDivisions(
         @RequestParam(defaultValue = "") String query,
         @RequestParam(defaultValue = "0") Integer page,

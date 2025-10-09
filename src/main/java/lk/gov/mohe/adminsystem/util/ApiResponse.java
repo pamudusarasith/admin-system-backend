@@ -39,7 +39,7 @@ public record ApiResponse<D>(
 
     public record Pagination(
         int page,
-        int size,
+        int pageSize,
         int totalPages
     ) {
     }

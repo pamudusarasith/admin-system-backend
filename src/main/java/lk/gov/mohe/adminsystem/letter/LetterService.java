@@ -92,7 +92,7 @@ public class LetterService {
     ) {
         Letter letter = letterRepository.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                "Letter not found with id: " + id));
+                        "Letter not found"));
 
         if (!hasAccessToLetter(letter, userId, divisionId, authorities, "read")) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
@@ -146,7 +146,7 @@ public class LetterService {
     ) {
         Letter letter = letterRepository.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                "Letter not found with id: " + id));
+                        "Letter not found"));
 
         if (!hasAccessToLetter(letter, userId, divisionId, authorities, "update")) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
@@ -165,21 +165,16 @@ public class LetterService {
     ) {
         Letter letter = letterRepository.findById(letterId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                "Letter not found with id: " + letterId));
+                "Letter not found"));
 
         if (letter.getAssignedDivision() != null) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                 "Letter is already assigned to a division");
         }
 
-        if (divisionId == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                "Division ID must be provided");
-        }
-
         Division division = divisionRepository.findById(divisionId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                "Division not found with id: " + divisionId));
+                        "Division not found"));
 
         letter.setStatus(StatusEnum.ASSIGNED_TO_DIVISION);
         letter.setAssignedDivision(division);
@@ -204,7 +199,7 @@ public class LetterService {
     ) {
         Letter letter = letterRepository.findById(letterId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                "Letter not found with id: " + letterId));
+                        "Letter not found"));
 
         if (!hasAccessToLetter(letter, userId, divisionId, authorities, "add:note")) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
@@ -308,7 +303,7 @@ public class LetterService {
                     Integer divisionId = (Integer) entry.getValue();
                     Division division = divisionRepository.findById(divisionId)
                         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                            "Division not found with id: " + divisionId));
+                                    "Division not found"));
                     eventDetailsMap.put("assignedDivision", division);
                 }
                 default -> eventDetailsMap.put(entry.getKey(), entry.getValue());

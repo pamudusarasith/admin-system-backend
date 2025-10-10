@@ -12,22 +12,20 @@ import org.springframework.web.server.ResponseStatusException;
 @Component
 @RequiredArgsConstructor
 public class CurrentUserProvider {
-    private final UserRepository userRepository;
+  private final UserRepository userRepository;
 
-    public User getCurrentUserOrThrow() {
-        Authentication authentication =
-            SecurityContextHolder.getContext().getAuthentication();
+  public User getCurrentUserOrThrow() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
-                "Authentication is required");
-        }
-
-        String username = authentication.getName();
-        User user = userRepository.findByUsername(username);
-        if (user == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found");
-        }
-        return user;
+    if (authentication == null || !authentication.isAuthenticated()) {
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication is required");
     }
+
+    String username = authentication.getName();
+    User user = userRepository.findByUsername(username);
+    if (user == null) {
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found");
+    }
+    return user;
+  }
 }

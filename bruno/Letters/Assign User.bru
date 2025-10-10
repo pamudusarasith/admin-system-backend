@@ -1,0 +1,21 @@
+meta {
+  name: Assign User
+  type: http
+  seq: 6
+}
+
+put {
+  url: {{base_url}}/letters/1/user
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "userId": 1
+  }
+}
+
+settings {
+  encodeUrl: true
+}

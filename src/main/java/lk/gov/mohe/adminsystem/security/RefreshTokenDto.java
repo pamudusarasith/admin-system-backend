@@ -1,6 +1,3 @@
 package lk.gov.mohe.adminsystem.security;
 
-public record RefreshTokenDto(
-    String refreshToken
-) {
-}
+public record RefreshTokenDto(String refreshToken) {}

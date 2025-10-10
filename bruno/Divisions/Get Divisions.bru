@@ -1,0 +1,21 @@
+meta {
+  name: Get Divisions
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/divisions?query=IT&page=0&pageSize=10
+  body: none
+  auth: inherit
+}
+
+params:query {
+  query: IT
+  page: 0
+  pageSize: 10
+}
+
+settings {
+  encodeUrl: true
+}

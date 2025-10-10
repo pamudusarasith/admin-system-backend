@@ -4,6 +4,8 @@ import lk.gov.mohe.adminsystem.attachment.Attachment;
 import lk.gov.mohe.adminsystem.attachment.AttachmentParent;
 import lk.gov.mohe.adminsystem.attachment.AttachmentRepository;
 import lk.gov.mohe.adminsystem.attachment.ParentTypeEnum;
+import lk.gov.mohe.adminsystem.division.Division;
+import lk.gov.mohe.adminsystem.division.DivisionRepository;
 import lk.gov.mohe.adminsystem.security.CurrentUserProvider;
 import lk.gov.mohe.adminsystem.storage.MinioStorageService;
 import lk.gov.mohe.adminsystem.user.User;
@@ -20,11 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -33,6 +31,7 @@ public class LetterService {
     private final LetterRepository letterRepository;
     private final LetterEventRepository letterEventRepository;
     private final AttachmentRepository attachmentRepository;
+    private final DivisionRepository divisionRepository;
     private final LetterMapper letterMapper;
     private final MinioStorageService storageService;
     private final CurrentUserProvider currentUserProvider;
@@ -93,7 +92,7 @@ public class LetterService {
     ) {
         Letter letter = letterRepository.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                "Letter not found with id: " + id));
+                        "Letter not found"));
 
         if (!hasAccessToLetter(letter, userId, divisionId, authorities, "read")) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
@@ -104,30 +103,12 @@ public class LetterService {
             attachmentRepository.findByParentTypeAndParentId(ParentTypeEnum.LETTER,
                 letter.getId());
         List<LetterEvent> events = letterEventRepository.findByLetterId(letter.getId());
-
-        // Collect all event IDs for ADD_NOTE events
-        List<Integer> addNoteEventIds = events.stream()
-            .filter(e -> e.getEventType() == EventTypeEnum.ADD_NOTE)
-            .map(LetterEvent::getId)
-            .toList();
-
-        // Fetch all attachments for these event IDs in one query
-        List<Attachment> allEventAttachments = addNoteEventIds.isEmpty() ? List.of() :
-            attachmentRepository.findByParentTypeAndParentIdIn(ParentTypeEnum.LETTER_EVENT, addNoteEventIds);
-
-        // Map event ID to its attachments
-        Map<Integer, List<Attachment>> attachmentsByEventId = allEventAttachments.stream()
-            .collect(Collectors.groupingBy(Attachment::getParentId));
-
-        for (LetterEvent event : events) {
-            if (event.getEventType() != EventTypeEnum.ADD_NOTE)
-                continue;
-            List<Attachment> eventAttachments =
-                attachmentsByEventId.getOrDefault(event.getId(), List.of());
+        events.forEach(event -> {
             Map<String, Object> details = event.getEventDetails();
-            details.put("attachments", eventAttachments);
-            event.setEventDetails(details);
-        }
+            if (details != null) {
+                event.setEventDetails(populateEventDetails(details));
+            }
+        });
 
         return letterMapper.toLetterDtoFull(letter, attachments, events);
     }
@@ -165,7 +146,7 @@ public class LetterService {
     ) {
         Letter letter = letterRepository.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                "Letter not found with id: " + id));
+                        "Letter not found"));
 
         if (!hasAccessToLetter(letter, userId, divisionId, authorities, "update")) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
@@ -175,6 +156,36 @@ public class LetterService {
         letterMapper.updateEntityFromCreateOrUpdateLetterRequestDto(request, letter);
 
         letterRepository.save(letter);
+    }
+
+    @Transactional
+    public void assignDivision(
+        Integer letterId,
+        Integer divisionId
+    ) {
+        Letter letter = letterRepository.findById(letterId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                "Letter not found"));
+
+        if (letter.getAssignedDivision() != null) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                "Letter is already assigned to a division");
+        }
+
+        Division division = divisionRepository.findById(divisionId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Division not found"));
+
+        letter.setStatus(StatusEnum.ASSIGNED_TO_DIVISION);
+        letter.setAssignedDivision(division);
+        letter.setAssignedUser(null);
+        letterRepository.save(letter);
+
+        Map<String, Object> eventDetails = Map.of(
+            "newStatus", StatusEnum.ASSIGNED_TO_DIVISION,
+            "assignedDivisionId", divisionId
+        );
+        createLetterEvent(letter, EventTypeEnum.CHANGE_STATUS, eventDetails);
     }
 
     @Transactional
@@ -188,21 +199,26 @@ public class LetterService {
     ) {
         Letter letter = letterRepository.findById(letterId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                "Letter not found with id: " + letterId));
+                        "Letter not found"));
 
         if (!hasAccessToLetter(letter, userId, divisionId, authorities, "add:note")) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                 "You do not have permission to add a note to this letter");
         }
 
-        Map<String, Object> eventDetails = Map.of(
-            "content", content
-        );
+        Map<String, Object> eventDetails = new HashMap<>();
+        eventDetails.put("content", content);
 
         LetterEvent letterEvent = createLetterEvent(letter, EventTypeEnum.ADD_NOTE,
             eventDetails);
 
-        saveAttachments(letterEvent, attachments);
+        List<Attachment> savedAttachments = saveAttachments(letterEvent, attachments);
+        List<Integer> attachmentIds = savedAttachments.stream()
+            .map(Attachment::getId)
+            .toList();
+        eventDetails.put("attachmentIds", attachmentIds);
+        letterEvent.setEventDetails(eventDetails);
+        letterEventRepository.save(letterEvent);
     }
 
     private LetterEvent createLetterEvent(
@@ -220,33 +236,36 @@ public class LetterService {
         return letterEventRepository.save(letterEvent);
     }
 
-    private void saveAttachments(
-        AttachmentParent parent, MultipartFile[] attachments
+    private List<Attachment> saveAttachments(
+        AttachmentParent parent, MultipartFile[] files
     ) {
-        if (attachments != null) {
-            for (MultipartFile attachment : attachments) {
-                if (attachment.isEmpty()) {
+        List<Attachment> attachmentList = new ArrayList<>();
+        if (files != null) {
+            for (MultipartFile file : files) {
+                if (file.isEmpty()) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "One of the attachments is empty");
+                        "One of the files is empty");
                 }
-                if (!acceptedMimeTypes.contains(attachment.getContentType())) {
+                if (!acceptedMimeTypes.contains(file.getContentType())) {
                     throw new ResponseStatusException(HttpStatus.UNSUPPORTED_MEDIA_TYPE,
-                        "Attachment type " + attachment.getContentType() + " is not " +
+                        "Attachment type " + file.getContentType() + " is not " +
                             "supported");
                 }
-                Attachment newAttachment = new Attachment();
-                newAttachment.setFileName(attachment.getOriginalFilename());
+                Attachment attachment = new Attachment();
+                attachment.setFileName(file.getOriginalFilename());
                 String folder = switch (parent.getType()) {
                     case ParentTypeEnum.LETTER -> "letters";
                     case ParentTypeEnum.LETTER_EVENT -> "events";
                 };
-                String objectName = storageService.upload(folder, attachment);
-                newAttachment.setFilePath(objectName);
-                newAttachment.setFileType(attachment.getContentType());
-                newAttachment.attachToParent(parent);
-                attachmentRepository.save(newAttachment);
+                String objectName = storageService.upload(folder, file);
+                attachment.setFilePath(objectName);
+                attachment.setFileType(file.getContentType());
+                attachment.attachToParent(parent);
+                attachment = attachmentRepository.save(attachment);
+                attachmentList.add(attachment);
             }
         }
+        return attachmentList;
     }
 
     private boolean hasAccessToLetter(
@@ -267,5 +286,29 @@ public class LetterService {
             && letter.getAssignedUser() != null
             && letter.getAssignedUser().getId().equals(userId);
         return hasAllAccess || hasUnassignedAccess || hasDivisionAccess || hasOwnAccess;
+    }
+
+    private Map<String, Object> populateEventDetails(Map<String, Object> eventDetails) {
+        Map<String, Object> eventDetailsMap = new HashMap<>();
+        for (Map.Entry<String, Object> entry : eventDetails.entrySet()) {
+            switch (entry.getKey()) {
+                case "attachmentIds" -> {
+                    @SuppressWarnings("unchecked")
+                    List<Integer> attachmentIds = (List<Integer>) entry.getValue();
+                    List<Attachment> attachments =
+                        attachmentRepository.findAllById(attachmentIds);
+                    eventDetailsMap.put("attachments", attachments);
+                }
+                case "assignedDivisionId" -> {
+                    Integer divisionId = (Integer) entry.getValue();
+                    Division division = divisionRepository.findById(divisionId)
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                    "Division not found"));
+                    eventDetailsMap.put("assignedDivision", division);
+                }
+                default -> eventDetailsMap.put(entry.getKey(), entry.getValue());
+            }
+        }
+        return eventDetailsMap;
     }
 }

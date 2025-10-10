@@ -1,15 +1,13 @@
 package lk.gov.mohe.adminsystem.attachment;
 
+import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
-
 public interface AttachmentRepository extends JpaRepository<Attachment, Integer> {
-    long countByParentIdAndParentType(Integer parentId, ParentTypeEnum parentType);
+  long countByParentIdAndParentType(Integer parentId, ParentTypeEnum parentType);
 
-    List<Attachment> findByParentTypeAndParentId(ParentTypeEnum parentType,
-                                                 Integer parentId);
+  List<Attachment> findByParentTypeAndParentId(ParentTypeEnum parentType, Integer parentId);
 
-    List<Attachment> findByParentTypeAndParentIdIn(ParentTypeEnum parentTypeEnum,
-                                                   List<Integer> parentIds);
+  List<Attachment> findByParentTypeAndParentIdIn(
+      ParentTypeEnum parentTypeEnum, List<Integer> parentIds);
 }

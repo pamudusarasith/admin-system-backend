@@ -4,9 +4,4 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import org.springframework.lang.NonNull;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public record ErrorInfo(
-    String field,
-    @NonNull
-    String message
-) {
-}
+public record ErrorInfo(String field, @NonNull String message) {}

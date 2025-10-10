@@ -7,36 +7,13 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
 public record CreateOrUpdateLetterRequestDto(
-    @NotEmpty
-    String reference,
-
-    @Valid
-    @NotNull
-    @JsonProperty("sender_details")
-    SenderDetailsDto senderDetails,
-
-    @JsonProperty("receiver_details")
-    ReceiverDetailsDto receiverDetails,
-
-    @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}")
-    @JsonProperty("sent_date")
-    String sentDate,
-
-    @NotEmpty
-    @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}")
-    @JsonProperty("received_date")
-    String receivedDate,
-
-    @NotNull
-    @JsonProperty("mode_of_arrival")
-    ModeOfArrivalEnum modeOfArrival,
-
-    @NotEmpty
-    String subject,
-
+    @NotEmpty String reference,
+    @Valid @NotNull @JsonProperty("sender_details") SenderDetailsDto senderDetails,
+    @JsonProperty("receiver_details") ReceiverDetailsDto receiverDetails,
+    @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}") @JsonProperty("sent_date") String sentDate,
+    @NotEmpty @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}") @JsonProperty("received_date")
+        String receivedDate,
+    @NotNull @JsonProperty("mode_of_arrival") ModeOfArrivalEnum modeOfArrival,
+    @NotEmpty String subject,
     String content,
-
-    @NotNull
-    PriorityEnum priority
-) {
-}
+    @NotNull PriorityEnum priority) {}

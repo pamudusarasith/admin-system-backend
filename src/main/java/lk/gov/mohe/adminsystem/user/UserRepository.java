@@ -14,4 +14,8 @@ public interface UserRepository extends CrudRepository<User, Integer> {
 
   @Query("SELECT u.role.id, COUNT(u) FROM User u WHERE u.role.id IN :roleIds GROUP BY u.role.id")
   List<Object[]> countUsersByRoleIds(@Param("roleIds") List<Integer> roleIds);
+
+  boolean existsByUsername(String username);
+
+  boolean existsByEmail(String email);
 }

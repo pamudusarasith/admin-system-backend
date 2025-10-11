@@ -1,9 +1,11 @@
 package lk.gov.mohe.adminsystem.permission;
 
 
+import lk.gov.mohe.adminsystem.util.ApiResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -16,7 +18,7 @@ public class PermissionController {
 
 
     @GetMapping("/permissions")
-    public ResponseEntity<?> getPermissionHierarchy() {
-        return ResponseEntity.ok(permissionService.getPermissionHierarchy());
+    public ApiResponse<List<MainCategoryDTO>> getPermissionHierarchy() {
+        return ApiResponse.of(permissionService.getPermissionHierarchy());
     }
 }

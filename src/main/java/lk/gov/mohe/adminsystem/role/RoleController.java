@@ -16,7 +16,7 @@ public class RoleController {
   @PostMapping
   public ApiResponse<Void> createRole(@Valid @RequestBody CreateRoleRequest request) {
     return roleService.createRole(request.name(), request.description(), request.permissions());
-    }
+  }
 
   @PutMapping("/{id}")
   public ApiResponse<Void> updateRole(

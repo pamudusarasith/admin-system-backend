@@ -8,9 +8,7 @@ import org.springframework.lang.NonNull;
 import java.util.Collection;
 import java.util.List;
 
-public interface PermissionRepository extends CrudRepository<Permission, Long> {
-    @NonNull
-    List<Permission> findAllByNameIsIn(Collection<@NotNull String> names);
+public interface PermissionCategoryRepository extends CrudRepository<PermissionCategory, Integer> {
 
-    @org.jetbrains.annotations.NotNull List<Permission> findAll();
+    @org.jetbrains.annotations.NotNull List<PermissionCategory> findAll();
 }

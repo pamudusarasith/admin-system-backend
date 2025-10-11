@@ -1,5 +1,6 @@
 package lk.gov.mohe.adminsystem.permission;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -30,7 +31,9 @@ public class Permission {
     @Column(name = "description", length = Integer.MAX_VALUE)
     private String description;
 
+
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
     @JoinColumn(name = "category_id")
     private PermissionCategory category;
 }

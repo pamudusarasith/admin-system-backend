@@ -2,6 +2,7 @@ package lk.gov.mohe.adminsystem.role;
 
 import jakarta.validation.Valid;
 import lk.gov.mohe.adminsystem.permission.Permission;
+import lk.gov.mohe.adminsystem.permission.PermissionCategory;
 import lk.gov.mohe.adminsystem.permission.PermissionRepository;
 import lk.gov.mohe.adminsystem.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +23,7 @@ public class RoleController {
     @PostMapping("/roles")
     public ResponseEntity<?> createRole(@Valid @RequestBody CreateRoleRequest request) {
         if (roleRepository.findByName(request.name()).isPresent()) {
-            return ResponseEntity.badRequest().body("Role name already exists");
+            return ResponseEntity.badRequest().body(Map.of("message", "Role Name Already Exists"));
         }
 
         Set<Permission> permissions = new HashSet<>(permissionRepository.findAllByNameIsIn(request.permissions()));
@@ -33,7 +34,7 @@ public class RoleController {
         role.setPermissions(permissions);
 
         roleRepository.save(role);
-        return ResponseEntity.ok("Role created successfully");
+        return ResponseEntity.ok(Map.of("message", "Role Created Successfully"));
     }
 
     @PutMapping("/roles/{id}")
@@ -66,11 +67,28 @@ public class RoleController {
         }
         List<RoleDto> roleDtos = new ArrayList<>();
         for (Role role : roles) {
+            List<RoleDto.PermissionInfo> permissionInfos = role.getPermissions().stream().map(permission -> {
+                String mainCategory = null;
+                String subCategory = null;
+                if (permission.getCategory() != null) {
+                    PermissionCategory cat = permission.getCategory();
+                    if (cat.getParent() == null) {
+                        mainCategory = cat.getName();
+                    } else {
+                        subCategory = cat.getName();
+                        PermissionCategory parent = cat.getParent();
+                        if (parent != null) {
+                            mainCategory = parent.getName();
+                        }
+                    }
+                }
+                return new RoleDto.PermissionInfo(mainCategory, subCategory, permission.getLabel(), permission.getDescription());
+            }).toList();
             RoleDto roleDto = new RoleDto(
                 role.getId(),
                 role.getName(),
                 role.getDescription(),
-                role.getPermissions().stream().map(Permission::getName).toList(),
+                permissionInfos,
                 userCountMap.getOrDefault(role.getId(), 0L)
             );
             roleDtos.add(roleDto);

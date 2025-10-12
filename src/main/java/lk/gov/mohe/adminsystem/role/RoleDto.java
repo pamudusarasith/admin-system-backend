@@ -6,7 +6,13 @@ public record RoleDto(
         Integer id,
         String name,
         String description,
-        List<String> permissions,
+        List<PermissionInfo> permissions,
         long userCount
 ) {
+    public record PermissionInfo(
+            String mainCategory,
+            String subCategory,
+            String label,
+            String description
+    ) {}
 }

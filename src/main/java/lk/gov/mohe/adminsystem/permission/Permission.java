@@ -31,9 +31,8 @@ public class Permission {
   @Column(name = "description", length = Integer.MAX_VALUE)
   private String description;
 
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JsonIgnore
-    @JoinColumn(name = "category_id")
-    private PermissionCategory category;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JsonIgnore
+  @JoinColumn(name = "category_id")
+  private PermissionCategory category;
 }

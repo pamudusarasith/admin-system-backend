@@ -1,6 +1,7 @@
 package lk.gov.mohe.adminsystem.role;
 
 import jakarta.validation.Valid;
+import java.util.*;
 import lk.gov.mohe.adminsystem.permission.Permission;
 import lk.gov.mohe.adminsystem.permission.PermissionCategory;
 import lk.gov.mohe.adminsystem.permission.PermissionRepository;
@@ -8,8 +9,6 @@ import lk.gov.mohe.adminsystem.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.*;
 
 @RestController
 @RequiredArgsConstructor

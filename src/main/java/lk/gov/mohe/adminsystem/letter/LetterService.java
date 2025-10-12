@@ -19,6 +19,7 @@ import lk.gov.mohe.adminsystem.user.User;
 import lk.gov.mohe.adminsystem.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -47,7 +48,7 @@ public class LetterService {
   @Value("${custom.attachments.accepted-mime-types}")
   private final Set<String> acceptedMimeTypes;
 
-  @Transactional
+  @Transactional(readOnly = true)
   public Page<LetterDto> getAccessibleLetters(
       Integer userId,
       Integer divisionId,
@@ -183,7 +184,7 @@ public class LetterService {
     return spec;
   }
 
-  @Transactional
+  @Transactional(readOnly = true)
   public LetterDto getLetterById(
       Integer id, Integer userId, Integer divisionId, Collection<String> authorities) {
     Letter letter =
@@ -428,6 +429,7 @@ public class LetterService {
                   .orElseThrow(
                       () ->
                           new ResponseStatusException(HttpStatus.NOT_FOUND, "Division not found"));
+          division = Hibernate.unproxy(division, Division.class);
           eventDetailsMap.put("assignedDivision", division);
         }
         case "assignedUserId" -> {
@@ -437,6 +439,7 @@ public class LetterService {
                   .findById(userId)
                   .orElseThrow(
                       () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+          user = Hibernate.unproxy(user, User.class);
           eventDetailsMap.put("assignedUser", user);
         }
         default -> eventDetailsMap.put(entry.getKey(), entry.getValue());

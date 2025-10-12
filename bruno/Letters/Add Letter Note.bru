@@ -1,0 +1,20 @@
+meta {
+  name: Add Letter Note
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{base_url}}/letters/1/notes
+  body: multipartForm
+  auth: inherit
+}
+
+body:multipart-form {
+  content: This is a sample note.
+  attachments: @file(bruno.json)
+}
+
+settings {
+  encodeUrl: true
+}

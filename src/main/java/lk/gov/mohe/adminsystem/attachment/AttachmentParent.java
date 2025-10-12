@@ -1,7 +1,7 @@
 package lk.gov.mohe.adminsystem.attachment;
 
 public interface AttachmentParent {
-    public ParentTypeEnum getType();
+  ParentTypeEnum getType();
 
-    public Integer getId();
+  Integer getId();
 }

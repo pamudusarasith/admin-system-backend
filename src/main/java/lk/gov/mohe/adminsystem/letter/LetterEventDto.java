@@ -1,15 +1,11 @@
 package lk.gov.mohe.adminsystem.letter;
 
-import lk.gov.mohe.adminsystem.user.UserDto;
-
 import java.time.Instant;
-import java.util.Map;
+import lk.gov.mohe.adminsystem.user.UserDto;
 
 public record LetterEventDto(
     Integer id,
     UserDto user,
     EventTypeEnum eventType,
-    Map<String, Object> eventDetails,
-    Instant createdAt
-) {
-}
+    EventDetailsDto eventDetails,
+    Instant createdAt) {}

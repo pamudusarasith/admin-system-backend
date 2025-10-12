@@ -1,11 +1,10 @@
 package lk.gov.mohe.adminsystem.letter;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import java.util.List;
 import lk.gov.mohe.adminsystem.attachment.AttachmentDto;
 import lk.gov.mohe.adminsystem.division.DivisionDto;
 import lk.gov.mohe.adminsystem.user.UserDto;
-
-import java.util.List;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record LetterDto(
@@ -27,6 +26,4 @@ public record LetterDto(
     List<AttachmentDto> attachments,
     List<LetterEventDto> events,
     String createdAt,
-    String updatedAt
-) {
-}
+    String updatedAt) {}

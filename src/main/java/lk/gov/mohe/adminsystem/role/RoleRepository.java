@@ -1,17 +1,16 @@
 package lk.gov.mohe.adminsystem.role;
 
+import java.util.List;
+import java.util.Optional;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.lang.NonNull;
 
-import java.util.List;
-import java.util.Optional;
-
 public interface RoleRepository extends CrudRepository<Role, Integer> {
-    @NonNull
-    Optional<Role> findById(@NonNull Integer id);
+  @NonNull
+  Optional<Role> findById(@NonNull Integer id);
 
-    Optional<Role> findByName(String name);
+  Optional<Role> findByName(String name);
 
-    @NonNull
-    List<Role> findAll();
+  @NonNull
+  List<Role> findAll();
 }

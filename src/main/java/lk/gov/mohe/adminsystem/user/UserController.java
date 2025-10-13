@@ -19,9 +19,13 @@ public class UserController {
   private final UserService userService;
 
   @GetMapping("/users")
-  @PreAuthorize("hasAuthority('user:read')")
-  public ApiResponse<List<UserDto>> getUsers() {
-    return ApiResponse.of(userService.getUsers());
+  @PreAuthorize("hasAnyAuthority('user:read', 'letter:assign:user')")
+  public ApiResponse<List<UserDto>> getUsers(
+      @RequestParam(defaultValue = "") String query,
+      @RequestParam(required = false) Integer divisionId,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "10") int pageSize) {
+    return ApiResponse.paged(userService.getUsers(query, divisionId, page, pageSize));
   }
 
   @PostMapping("/users")

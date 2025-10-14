@@ -1,16 +1,19 @@
 package lk.gov.mohe.adminsystem.user;
 
-import java.util.List;
-import java.util.stream.Collectors;
 import lk.gov.mohe.adminsystem.division.Division;
 import lk.gov.mohe.adminsystem.division.DivisionRepository;
 import lk.gov.mohe.adminsystem.role.Role;
 import lk.gov.mohe.adminsystem.role.RoleRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
@@ -23,10 +26,29 @@ public class UserService {
   private final DivisionRepository divisionRepository;
   private final UserMapper userMapper;
 
-  public List<UserDto> getUsers() {
-    return userRepository.findAll().stream()
-        .map(userMapper::toUserDto)
-        .collect(Collectors.toList());
+  @Transactional(readOnly = true)
+  public Page<UserDto> getUsers(String query, Integer divisionId, Integer page, Integer pageSize) {
+    Pageable pageable = PageRequest.of(page, pageSize);
+    Specification<User> spec = null;
+
+    if (StringUtils.hasText(query)) {
+      String likeQuery = "%" + query.toLowerCase() + "%";
+      spec =
+          (root, criteriaQuery, criteriaBuilder) ->
+              criteriaBuilder.or(
+                  criteriaBuilder.like(criteriaBuilder.lower(root.get("username")), likeQuery),
+                  criteriaBuilder.like(criteriaBuilder.lower(root.get("email")), likeQuery),
+                  criteriaBuilder.like(criteriaBuilder.lower(root.get("fullName")), likeQuery),
+                  criteriaBuilder.like(criteriaBuilder.lower(root.get("phoneNumber")), likeQuery));
+    }
+
+    if (divisionId != null) {
+      Specification<User> divisionSpec =
+          (root, criteriaQuery, criteriaBuilder) ->
+              criteriaBuilder.equal(root.get("division").get("id"), divisionId);
+      spec = (spec == null) ? divisionSpec : spec.and(divisionSpec);
+    }
+    return userRepository.findAll(spec, pageable).map(userMapper::toUserDto);
   }
 
   @Transactional

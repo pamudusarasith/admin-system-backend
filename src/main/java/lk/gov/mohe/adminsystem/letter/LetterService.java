@@ -1,12 +1,6 @@
 package lk.gov.mohe.adminsystem.letter;
 
-import static lk.gov.mohe.adminsystem.letter.LetterSpecs.*;
-import static lk.gov.mohe.adminsystem.util.SpecificationsUtil.andSpec;
-import static lk.gov.mohe.adminsystem.util.SpecificationsUtil.orSpec;
-
-import java.time.LocalDate;
 import java.util.*;
-import java.util.function.Function;
 import lk.gov.mohe.adminsystem.attachment.Attachment;
 import lk.gov.mohe.adminsystem.attachment.AttachmentParent;
 import lk.gov.mohe.adminsystem.attachment.AttachmentRepository;
@@ -28,7 +22,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -48,24 +41,38 @@ public class LetterService {
   @Value("${custom.attachments.accepted-mime-types}")
   private final Set<String> acceptedMimeTypes;
 
-  @Transactional(readOnly = true)
   public Page<LetterDto> getAccessibleLetters(
       Integer userId,
       Integer divisionId,
       Collection<String> authorities,
-      LetterSearchParams filters,
       Integer page,
       Integer pageSize) {
     Pageable pageable = PageRequest.of(page, pageSize);
-    Specification<Letter> filterSpec = buildFilterSpec(filters);
-
     if (authorities.contains("letter:all:read")) {
-      return findLetters(filterSpec, pageable);
+      return letterRepository.findAll(pageable).map(letterMapper::toLetterDtoMin);
     }
 
-    Specification<Letter> scopeSpec = buildScopeSpec(authorities, divisionId, userId);
+    Specification<Letter> spec = null;
 
-    if (scopeSpec == null) {
+    if (authorities.contains("letter:unassigned:read")) {
+      spec =
+          (root, query, cb) ->
+              cb.and(cb.isNull(root.get("assignedDivision")), cb.isNull(root.get("assignedUser")));
+    }
+
+    if (authorities.contains("letter:division:read")) {
+      Specification<Letter> divisionSpec =
+          (root, query, cb) -> cb.equal(root.get("assignedDivision").get("id"), divisionId);
+      spec = (spec == null) ? divisionSpec : spec.or(divisionSpec);
+    }
+
+    if (authorities.contains("letter:own:read")) {
+      Specification<Letter> ownSpec =
+          (root, query, cb) -> cb.equal(root.get("assignedUser").get("id"), userId);
+      spec = (spec == null) ? ownSpec : spec.or(ownSpec);
+    }
+
+    if (spec == null) {
       // No permitted scope matched: return empty page to avoid unintended full
       // access
       log.warn(
@@ -75,116 +82,9 @@ public class LetterService {
       return Page.empty(pageable);
     }
 
-    Specification<Letter> finalSpec = andSpec(scopeSpec, filterSpec);
-    return findLetters(finalSpec, pageable);
+    return letterRepository.findAll(spec, pageable).map(letterMapper::toLetterDtoMin);
   }
 
-  private Specification<Letter> buildFilterSpec(LetterSearchParams filters) {
-    if (filters == null) {
-      return null;
-    }
-
-    Specification<Letter> spec = null;
-
-    spec = withText(spec, filters.getQuery(), LetterSpecs::matchesQuery);
-    spec = withValue(spec, filters.getStatus(), LetterSpecs::hasStatus);
-    spec = withValue(spec, filters.getPriority(), LetterSpecs::hasPriority);
-    spec = withValue(spec, filters.getModeOfArrival(), LetterSpecs::hasModeOfArrival);
-    spec = withText(spec, filters.getSender(), LetterSpecs::hasSenderContaining);
-    spec = withText(spec, filters.getReceiver(), LetterSpecs::hasReceiverContaining);
-
-    spec =
-        applyDateFilters(
-            spec,
-            filters.getSentDate(),
-            filters.getSentDateFrom(),
-            filters.getSentDateTo(),
-            LetterSpecs::hasSentDate,
-            LetterSpecs::hasSentDateOnOrAfter,
-            LetterSpecs::hasSentDateOnOrBefore);
-
-    spec =
-        applyDateFilters(
-            spec,
-            filters.getReceivedDate(),
-            filters.getReceivedDateFrom(),
-            filters.getReceivedDateTo(),
-            LetterSpecs::hasReceivedDate,
-            LetterSpecs::hasReceivedDateOnOrAfter,
-            LetterSpecs::hasReceivedDateOnOrBefore);
-
-    spec =
-        withText(
-            spec, filters.getAssignedDivision(), LetterSpecs::hasAssignedDivisionNameContaining);
-    spec = withText(spec, filters.getAssignedUser(), LetterSpecs::hasAssignedUserContaining);
-
-    return spec;
-  }
-
-  private Specification<Letter> buildScopeSpec(
-      Collection<String> authorities, Integer divisionId, Integer userId) {
-    Specification<Letter> spec = null;
-
-    if (authorities.contains("letter:unassigned:read")) {
-      spec = orSpec(spec, hasNoAssignment());
-    }
-
-    if (authorities.contains("letter:division:read")) {
-      spec = orSpec(spec, belongsToDivision(divisionId));
-    }
-
-    if (authorities.contains("letter:own:read")) {
-      spec = orSpec(spec, assignedToUser(userId));
-    }
-
-    return spec;
-  }
-
-  private Page<LetterDto> findLetters(Specification<Letter> spec, Pageable pageable) {
-    Page<Letter> letters =
-        (spec == null)
-            ? letterRepository.findAll(pageable)
-            : letterRepository.findAll(spec, pageable);
-
-    return letters.map(letterMapper::toLetterDtoMin);
-  }
-
-  private Specification<Letter> withText(
-      Specification<Letter> base, String value, Function<String, Specification<Letter>> mapper) {
-    return StringUtils.hasText(value) ? andSpec(base, mapper.apply(value)) : base;
-  }
-
-  private <T> Specification<Letter> withValue(
-      Specification<Letter> base, T value, Function<T, Specification<Letter>> mapper) {
-    return value != null ? andSpec(base, mapper.apply(value)) : base;
-  }
-
-  private Specification<Letter> applyDateFilters(
-      Specification<Letter> base,
-      LocalDate exact,
-      LocalDate from,
-      LocalDate to,
-      Function<LocalDate, Specification<Letter>> exactSpec,
-      Function<LocalDate, Specification<Letter>> fromSpec,
-      Function<LocalDate, Specification<Letter>> toSpec) {
-    Specification<Letter> spec = base;
-
-    if (exact != null) {
-      return andSpec(spec, exactSpec.apply(exact));
-    }
-
-    if (from != null) {
-      spec = andSpec(spec, fromSpec.apply(from));
-    }
-
-    if (to != null) {
-      spec = andSpec(spec, toSpec.apply(to));
-    }
-
-    return spec;
-  }
-
-  @Transactional(readOnly = true)
   public LetterDto getLetterById(
       Integer id, Integer userId, Integer divisionId, Collection<String> authorities) {
     Letter letter =
@@ -231,7 +131,6 @@ public class LetterService {
     return savedLetter;
   }
 
-  @Transactional
   public void updateLetter(
       Integer id,
       CreateOrUpdateLetterRequestDto request,
@@ -435,7 +334,7 @@ public class LetterService {
                   .orElseThrow(
                       () ->
                           new ResponseStatusException(HttpStatus.NOT_FOUND, "Division not found"));
-          division = Hibernate.unproxy(division, Division.class);
+          Hibernate.unproxy(division, Division.class);
           eventDetailsMap.put("assignedDivision", division);
         }
         case "assignedUserId" -> {
@@ -445,7 +344,7 @@ public class LetterService {
                   .findById(userId)
                   .orElseThrow(
                       () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-          user = Hibernate.unproxy(user, User.class);
+          Hibernate.unproxy(user, User.class);
           eventDetailsMap.put("assignedUser", user);
         }
         default -> eventDetailsMap.put(entry.getKey(), entry.getValue());

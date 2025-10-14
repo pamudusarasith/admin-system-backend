@@ -23,30 +23,27 @@ public class LetterController {
   private final LetterService letterService;
 
   @GetMapping("/letters")
-  @PreAuthorize(
-      "hasAnyAuthority('letter:all:read', 'letter:unassigned:read', 'letter:division:read',"
-          + " 'letter:own:read')")
+  @PreAuthorize("""
+      hasAnyAuthority('letter:all:read', 'letter:unassigned:read', 'letter:division:read',
+                      'letter:own:read')""")
   public ApiResponse<List<LetterDto>> getLetters(
-      @ModelAttribute LetterSearchParams params, Authentication authentication) {
+      @RequestParam(required = false, defaultValue = "0") Integer page,
+      @RequestParam(required = false, defaultValue = "10") Integer pageSize,
+      Authentication authentication) {
     Jwt jwt = (Jwt) authentication.getPrincipal();
     Collection<String> authorities =
         authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
 
     Page<LetterDto> letterPage =
         letterService.getAccessibleLetters(
-            jwt.getClaim("userId"),
-            jwt.getClaim("divisionId"),
-            authorities,
-            params,
-            params.getPage(),
-            params.getPageSize());
+            jwt.getClaim("userId"), jwt.getClaim("divisionId"), authorities, page, pageSize);
     return ApiResponse.paged(letterPage);
   }
 
   @GetMapping("/letters/{id}")
-  @PreAuthorize(
-      "hasAnyAuthority('letter:all:read', 'letter:unassigned:read', 'letter:division:read',"
-          + " 'letter:own:read')")
+  @PreAuthorize("""
+      hasAnyAuthority('letter:all:read', 'letter:unassigned:read', 'letter:division:read',
+                      'letter:own:read')""")
   public ApiResponse<LetterDto> getLetterById(
       @PathVariable Integer id, Authentication authentication) {
     Jwt jwt = (Jwt) authentication.getPrincipal();
@@ -70,9 +67,9 @@ public class LetterController {
   }
 
   @PutMapping("/letters/{id}")
-  @PreAuthorize(
-      "hasAnyAuthority('letter:all:update', 'letter:unassigned:update', 'letter:division:update',"
-          + " 'letter:own:update')")
+  @PreAuthorize("""
+      hasAnyAuthority('letter:all:update', 'letter:unassigned:update', 'letter:division:update',
+                      'letter:own:update')""")
   public ApiResponse<Void> updateLetter(
       @PathVariable Integer id,
       @Valid @RequestBody CreateOrUpdateLetterRequestDto request,
@@ -87,9 +84,9 @@ public class LetterController {
   }
 
   @PostMapping(value = "/letters/{id}/notes", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  @PreAuthorize(
-      "hasAnyAuthority('letter:all:add:note', 'letter:unassigned:add:note','letter:division:add:note',"
-          + "'letter:own:add:note')")
+  @PreAuthorize("""
+      hasAnyAuthority('letter:all:add:note', 'letter:unassigned:add:note',
+                      'letter:division:add:note','letter:own:add:note')""")
   public ApiResponse<Void> addNote(
       @PathVariable Integer id,
       @RequestPart("content") @NotBlank(message = "Content is required") String content,

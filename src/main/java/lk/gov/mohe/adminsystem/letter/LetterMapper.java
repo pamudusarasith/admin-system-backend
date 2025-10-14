@@ -7,8 +7,6 @@ import lk.gov.mohe.adminsystem.attachment.*;
 import lk.gov.mohe.adminsystem.division.Division;
 import lk.gov.mohe.adminsystem.division.DivisionDto;
 import lk.gov.mohe.adminsystem.division.DivisionMapper;
-import lk.gov.mohe.adminsystem.user.User;
-import lk.gov.mohe.adminsystem.user.UserDto;
 import lk.gov.mohe.adminsystem.user.UserMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -23,7 +21,6 @@ public abstract class LetterMapper {
   @Autowired protected DivisionMapper divisionMapper;
   @Autowired protected AttachmentRepository attachmentRepository;
   ParentTypeEnum letterParentType = ParentTypeEnum.LETTER;
-  @Autowired private UserMapper userMapper;
 
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "assignedDivision", ignore = true)
@@ -120,12 +117,6 @@ public abstract class LetterMapper {
       assignedDivision = divisionMapper.toDto((Division) divisionObj);
     }
 
-    UserDto assignedUser = null;
-    Object userObj = eventDetails.get("assignedUser");
-    if (userObj instanceof User) {
-      assignedUser = userMapper.toUserDtoMin((User) userObj);
-    }
-
-    return new EventDetailsDto(newStatus, content, attachments, assignedDivision, assignedUser);
+    return new EventDetailsDto(newStatus, content, attachments, assignedDivision);
   }
 }

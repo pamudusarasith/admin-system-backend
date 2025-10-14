@@ -9,7 +9,4 @@ import org.springframework.lang.NonNull;
 public interface PermissionRepository extends CrudRepository<Permission, Long> {
   @NonNull
   List<Permission> findAllByNameIsIn(Collection<@NotNull String> names);
-
-  @org.jetbrains.annotations.NotNull
-  List<Permission> findAll();
 }

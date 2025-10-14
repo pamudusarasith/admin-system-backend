@@ -1,0 +1,21 @@
+meta {
+  name: GET Users
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/users?query&page&size
+  body: none
+  auth: inherit
+}
+
+params:query {
+  query: 
+  page: 
+  size: 
+}
+
+settings {
+  encodeUrl: true
+}

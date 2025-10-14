@@ -13,6 +13,7 @@ import lk.gov.mohe.adminsystem.user.User;
 import lk.gov.mohe.adminsystem.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -99,7 +100,8 @@ public class LetterService {
 
     List<Attachment> attachments =
         attachmentRepository.findByParentTypeAndParentId(ParentTypeEnum.LETTER, letter.getId());
-    List<LetterEvent> events = letterEventRepository.findByLetterId(letter.getId());
+    List<LetterEvent> events =
+        letterEventRepository.findByLetterIdOrderByCreatedAtDesc(letter.getId());
     events.forEach(
         event -> {
           Map<String, Object> details = event.getEventDetails();
@@ -203,6 +205,11 @@ public class LetterService {
         userRepository
             .findById(userId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+    if (!user.getDivision().getId().equals(letter.getAssignedDivision().getId())) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "User must belong to the division assigned to the letter");
+    }
 
     letter.setStatus(StatusEnum.PENDING_ACCEPTANCE);
     letter.setAssignedUser(user);
@@ -327,6 +334,7 @@ public class LetterService {
                   .orElseThrow(
                       () ->
                           new ResponseStatusException(HttpStatus.NOT_FOUND, "Division not found"));
+          Hibernate.unproxy(division, Division.class);
           eventDetailsMap.put("assignedDivision", division);
         }
         case "assignedUserId" -> {
@@ -336,6 +344,7 @@ public class LetterService {
                   .findById(userId)
                   .orElseThrow(
                       () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+          Hibernate.unproxy(user, User.class);
           eventDetailsMap.put("assignedUser", user);
         }
         default -> eventDetailsMap.put(entry.getKey(), entry.getValue());

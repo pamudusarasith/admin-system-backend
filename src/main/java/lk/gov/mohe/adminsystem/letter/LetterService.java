@@ -200,7 +200,8 @@ public class LetterService {
 
     List<Attachment> attachments =
         attachmentRepository.findByParentTypeAndParentId(ParentTypeEnum.LETTER, letter.getId());
-    List<LetterEvent> events = letterEventRepository.findByLetterId(letter.getId());
+    List<LetterEvent> events =
+        letterEventRepository.findByLetterIdOrderByCreatedAtDesc(letter.getId());
     events.forEach(
         event -> {
           Map<String, Object> details = event.getEventDetails();
@@ -305,6 +306,11 @@ public class LetterService {
         userRepository
             .findById(userId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+    if (!user.getDivision().getId().equals(letter.getAssignedDivision().getId())) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "User must belong to the division assigned to the letter");
+    }
 
     letter.setStatus(StatusEnum.PENDING_ACCEPTANCE);
     letter.setAssignedUser(user);

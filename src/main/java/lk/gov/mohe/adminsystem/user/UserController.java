@@ -50,7 +50,7 @@ public class UserController {
   public ApiResponse<Void> deleteUser(@PathVariable Integer id) {
     userService.deleteUser(id);
     return ApiResponse.message("User deleted successfully");
-    }
+  }
 
   @GetMapping("/profile")
   public ApiResponse<UserDto> getProfile(@AuthenticationPrincipal Jwt jwt) {

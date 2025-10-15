@@ -42,20 +42,20 @@ public class UserService {
     user.setUsername(createUserRequest.username());
     user.setPassword(passwordEncoder.encode("123")); // Default password
     user.setEmail(createUserRequest.email());
-    user.setFullName(createUserRequest.fullName());
-    user.setPhoneNumber(createUserRequest.phoneNumber());
+    user.setFullName("New User");
+    user.setAccountSetupRequired(true);
     user.setIsActive(true);
 
     Role role =
         roleRepository
-            .findByName(createUserRequest.role())
+            .findById(createUserRequest.roleId())
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Role not found"));
     user.setRole(role);
 
     Division division =
         divisionRepository
-            .findByName(createUserRequest.division())
+            .findById(createUserRequest.divisionId())
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Division not found"));
     user.setDivision(division);

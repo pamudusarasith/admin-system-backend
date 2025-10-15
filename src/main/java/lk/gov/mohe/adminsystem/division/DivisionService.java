@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
@@ -14,6 +15,7 @@ public class DivisionService {
   private final DivisionRepository divisionRepository;
   private final DivisionMapper divisionMapper;
 
+  @Transactional(readOnly = true)
   public Page<DivisionDto> getDivisions(String query, Integer page, Integer pageSize) {
     Pageable pageable = Pageable.ofSize(pageSize).withPage(page);
 
@@ -31,6 +33,7 @@ public class DivisionService {
     return divisionRepository.findAll(spec, pageable).map(divisionMapper::toDto);
   }
 
+  @Transactional
   public void createDivision(CreateOrUpdateDivisionRequestDto dto) {
     if (divisionRepository.existsByName(dto.name())) {
       throw new ResponseStatusException(

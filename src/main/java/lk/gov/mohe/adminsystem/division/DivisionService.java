@@ -39,7 +39,25 @@ public class DivisionService {
       throw new ResponseStatusException(
           HttpStatus.CONFLICT, "Division with the same name already exists");
     }
-    Division division = divisionMapper.createOrUpdateRequestDtoToDivision(dto);
+    Division division = divisionMapper.dtoToDivision(dto);
     divisionRepository.save(division);
+  }
+
+  @Transactional
+  public void updateDivision(Integer id, CreateOrUpdateDivisionRequestDto dto) {
+    Division existingDivision =
+        divisionRepository
+            .findById(id)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Division not found"));
+
+    if (!existingDivision.getName().equals(dto.name())
+        && divisionRepository.existsByName(dto.name())) {
+      throw new ResponseStatusException(
+          HttpStatus.CONFLICT, "Division with the same name already exists");
+    }
+
+    divisionMapper.updateDivisionFromDto(dto, existingDivision);
+    divisionRepository.save(existingDivision);
   }
 }

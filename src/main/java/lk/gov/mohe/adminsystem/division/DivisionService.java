@@ -60,4 +60,14 @@ public class DivisionService {
     divisionMapper.updateDivisionFromDto(dto, existingDivision);
     divisionRepository.save(existingDivision);
   }
+
+  @Transactional
+  public void deleteDivision(Integer id) {
+    Division existingDivision =
+        divisionRepository
+            .findById(id)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Division not found"));
+    divisionRepository.delete(existingDivision);
+  }
 }

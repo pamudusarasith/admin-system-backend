@@ -2,11 +2,9 @@ package lk.gov.mohe.adminsystem.division;
 
 import jakarta.validation.Valid;
 import java.util.List;
-import java.util.Optional;
 import lk.gov.mohe.adminsystem.util.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,15 +34,9 @@ public class DivisionController {
   }
 
   @DeleteMapping("/divisions/{id}")
-  public ResponseEntity<Void> deleteDivision(@PathVariable Integer id) {
-    Optional<Division> division = divisionRepository.findById(id);
-
-    if (division.isEmpty()) {
-      return ResponseEntity.notFound().build();
-    }
-
-    divisionRepository.deleteById(id);
-    return ResponseEntity.noContent().build();
+  public ApiResponse<Void> deleteDivision(@PathVariable Integer id) {
+    divisionService.deleteDivision(id);
+    return ApiResponse.message("Division deleted successfully");
   }
 
   @PutMapping("/divisions/{id}")

@@ -1,0 +1,22 @@
+meta {
+  name: Create Division
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{base_url}}/divisions
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "Test Division",
+    "description": "Test division description"
+  }
+}
+
+settings {
+  encodeUrl: true
+}

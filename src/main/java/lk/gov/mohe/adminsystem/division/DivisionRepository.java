@@ -15,4 +15,6 @@ public interface DivisionRepository
   Optional<Division> findById(@NonNull Integer id);
 
   Optional<Division> findByName(@NotBlank(message = "Division must not be blank") String division);
+
+  Boolean existsByNameIgnoreCase(String name);
 }

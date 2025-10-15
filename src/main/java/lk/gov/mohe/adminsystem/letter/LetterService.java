@@ -367,7 +367,7 @@ public class LetterService {
 
     if (letter.getStatus() != StatusEnum.PENDING_ACCEPTANCE) {
       throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "Letter must be in PENDING ACCEPTANCE status to be accepted");
+          HttpStatus.BAD_REQUEST, "Letter must be in pending acceptance status to be accepted");
     }
 
     letter.setStatus(StatusEnum.ASSIGNED_TO_OFFICER);

@@ -119,4 +119,12 @@ public class LetterController {
     letterService.assignUser(letterId, request.userId());
     return ApiResponse.message("User assigned successfully");
   }
+
+  @PatchMapping(path = "/letters/{letterId}/user", params = "action=accept")
+  public ApiResponse<Void> acceptLetter(
+      @PathVariable Integer letterId, Authentication authentication) {
+    Jwt jwt = (Jwt) authentication.getPrincipal();
+    letterService.acceptLetter(letterId, jwt.getClaim("userId"));
+    return ApiResponse.message("Letter accepted successfully");
+  }
 }

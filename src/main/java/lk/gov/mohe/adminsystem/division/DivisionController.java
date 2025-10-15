@@ -6,7 +6,6 @@ import java.util.Optional;
 import lk.gov.mohe.adminsystem.util.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -30,10 +29,10 @@ public class DivisionController {
   }
 
   @PostMapping("/divisions")
-  public ResponseEntity<Division> createDivision(@Valid @RequestBody Division division) {
-    // The ID will be auto-generated, so we don't need to set it
-    Division savedDivision = divisionRepository.save(division);
-    return ResponseEntity.status(HttpStatus.CREATED).body(savedDivision);
+  public ApiResponse<Void> createDivision(
+      @Valid @RequestBody CreateOrUpdateDivisionRequestDto dto) {
+    divisionService.createDivision(dto);
+    return ApiResponse.message("Division created successfully");
   }
 
   @DeleteMapping("/divisions/{id}")

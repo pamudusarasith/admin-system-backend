@@ -27,22 +27,25 @@ public class DivisionController {
   }
 
   @PostMapping("/divisions")
+  @PreAuthorize("hasAuthority('division:create')")
   public ApiResponse<Void> createDivision(
       @Valid @RequestBody CreateOrUpdateDivisionRequestDto dto) {
     divisionService.createDivision(dto);
     return ApiResponse.message("Division created successfully");
   }
 
-  @DeleteMapping("/divisions/{id}")
-  public ApiResponse<Void> deleteDivision(@PathVariable Integer id) {
-    divisionService.deleteDivision(id);
-    return ApiResponse.message("Division deleted successfully");
-  }
-
   @PutMapping("/divisions/{id}")
+  @PreAuthorize("hasAuthority('division:update')")
   public ApiResponse<Void> updateDivision(
       @PathVariable Integer id, @Valid @RequestBody CreateOrUpdateDivisionRequestDto dto) {
     divisionService.updateDivision(id, dto);
     return ApiResponse.message("Division updated successfully");
+  }
+
+  @DeleteMapping("/divisions/{id}")
+  @PreAuthorize("hasAuthority('division:delete')")
+  public ApiResponse<Void> deleteDivision(@PathVariable Integer id) {
+    divisionService.deleteDivision(id);
+    return ApiResponse.message("Division deleted successfully");
   }
 }

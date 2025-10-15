@@ -279,7 +279,7 @@ public class LetterService {
     letterRepository.save(letter);
 
     Map<String, Object> eventDetails =
-        Map.of("newStatus", StatusEnum.ASSIGNED_TO_DIVISION, "assignedDivisionId", divisionId);
+        Map.of("newStatus", StatusEnum.ASSIGNED_TO_DIVISION, "divisionId", divisionId);
     createLetterEvent(letter, EventTypeEnum.CHANGE_STATUS, eventDetails);
   }
 
@@ -317,7 +317,7 @@ public class LetterService {
     letterRepository.save(letter);
 
     Map<String, Object> eventDetails =
-        Map.of("newStatus", StatusEnum.PENDING_ACCEPTANCE, "assignedUserId", userId);
+        Map.of("newStatus", StatusEnum.PENDING_ACCEPTANCE, "userId", userId);
     createLetterEvent(letter, EventTypeEnum.CHANGE_STATUS, eventDetails);
   }
 
@@ -453,7 +453,7 @@ public class LetterService {
           List<Attachment> attachments = attachmentRepository.findAllById(attachmentIds);
           eventDetailsMap.put("attachments", attachments);
         }
-        case "assignedDivisionId" -> {
+        case "divisionId" -> {
           Integer divisionId = (Integer) entry.getValue();
           Division division =
               divisionRepository
@@ -462,9 +462,9 @@ public class LetterService {
                       () ->
                           new ResponseStatusException(HttpStatus.NOT_FOUND, "Division not found"));
           division = Hibernate.unproxy(division, Division.class);
-          eventDetailsMap.put("assignedDivision", division);
+          eventDetailsMap.put("division", division);
         }
-        case "assignedUserId" -> {
+        case "userId" -> {
           Integer userId = (Integer) entry.getValue();
           User user =
               userRepository
@@ -472,7 +472,7 @@ public class LetterService {
                   .orElseThrow(
                       () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
           user = Hibernate.unproxy(user, User.class);
-          eventDetailsMap.put("assignedUser", user);
+          eventDetailsMap.put("user", user);
         }
         default -> eventDetailsMap.put(entry.getKey(), entry.getValue());
       }

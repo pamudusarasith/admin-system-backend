@@ -4,7 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
@@ -27,5 +29,14 @@ public class DivisionService {
     }
 
     return divisionRepository.findAll(spec, pageable).map(divisionMapper::toDto);
+  }
+
+  public void createDivision(CreateOrUpdateDivisionRequestDto dto) {
+    if (divisionRepository.existsByName(dto.name())) {
+      throw new ResponseStatusException(
+          HttpStatus.CONFLICT, "Division with the same name already exists");
+    }
+    Division division = divisionMapper.createOrUpdateRequestDtoToDivision(dto);
+    divisionRepository.save(division);
   }
 }

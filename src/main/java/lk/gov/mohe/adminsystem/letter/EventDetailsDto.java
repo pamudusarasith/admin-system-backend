@@ -11,5 +11,5 @@ public record EventDetailsDto(
     String newStatus,
     String content,
     List<AttachmentDto> attachments,
-    DivisionDto assignedDivision,
-    UserDto assignedUser) {}
+    DivisionDto division,
+    UserDto user) {}

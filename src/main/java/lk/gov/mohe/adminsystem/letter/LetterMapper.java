@@ -114,18 +114,18 @@ public abstract class LetterMapper {
       attachments = attachmentEntities.stream().map(attachmentMapper::toDto).toList();
     }
 
-    DivisionDto assignedDivision = null;
-    Object divisionObj = eventDetails.get("assignedDivision");
+    DivisionDto division = null;
+    Object divisionObj = eventDetails.get("division");
     if (divisionObj instanceof Division) {
-      assignedDivision = divisionMapper.toDto((Division) divisionObj);
+      division = divisionMapper.toDto((Division) divisionObj);
     }
 
-    UserDto assignedUser = null;
-    Object userObj = eventDetails.get("assignedUser");
+    UserDto user = null;
+    Object userObj = eventDetails.get("user");
     if (userObj instanceof User) {
-      assignedUser = userMapper.toUserDtoMin((User) userObj);
+      user = userMapper.toUserDtoMin((User) userObj);
     }
 
-    return new EventDetailsDto(newStatus, content, attachments, assignedDivision, assignedUser);
+    return new EventDetailsDto(newStatus, content, attachments, division, user);
   }
 }

@@ -279,7 +279,7 @@ public class LetterService {
     letterRepository.save(letter);
 
     Map<String, Object> eventDetails =
-        Map.of("newStatus", StatusEnum.ASSIGNED_TO_DIVISION, "assignedDivisionId", divisionId);
+        Map.of("newStatus", StatusEnum.ASSIGNED_TO_DIVISION, "divisionId", divisionId);
     createLetterEvent(letter, EventTypeEnum.CHANGE_STATUS, eventDetails);
   }
 
@@ -317,7 +317,7 @@ public class LetterService {
     letterRepository.save(letter);
 
     Map<String, Object> eventDetails =
-        Map.of("newStatus", StatusEnum.PENDING_ACCEPTANCE, "assignedUserId", userId);
+        Map.of("newStatus", StatusEnum.PENDING_ACCEPTANCE, "userId", userId);
     createLetterEvent(letter, EventTypeEnum.CHANGE_STATUS, eventDetails);
   }
 
@@ -350,6 +350,32 @@ public class LetterService {
     eventDetails.put("attachmentIds", attachmentIds);
     letterEvent.setEventDetails(eventDetails);
     letterEventRepository.save(letterEvent);
+  }
+
+  @Transactional
+  public void acceptLetter(Integer letterId, Integer userId) {
+    Letter letter =
+        letterRepository
+            .findById(letterId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
+
+    if (letter.getAssignedUser() == null || !letter.getAssignedUser().getId().equals(userId)) {
+      throw new ResponseStatusException(
+          HttpStatus.FORBIDDEN, "You can only accept letters assigned to you");
+    }
+
+    if (letter.getStatus() != StatusEnum.PENDING_ACCEPTANCE) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Letter must be in pending acceptance status to be accepted");
+    }
+
+    letter.setStatus(StatusEnum.ASSIGNED_TO_OFFICER);
+    letterRepository.save(letter);
+
+    Map<String, Object> eventDetails =
+        Map.of("newStatus", StatusEnum.ASSIGNED_TO_OFFICER, "userId", userId);
+    createLetterEvent(letter, EventTypeEnum.CHANGE_STATUS, eventDetails);
   }
 
   private LetterEvent createLetterEvent(
@@ -427,7 +453,7 @@ public class LetterService {
           List<Attachment> attachments = attachmentRepository.findAllById(attachmentIds);
           eventDetailsMap.put("attachments", attachments);
         }
-        case "assignedDivisionId" -> {
+        case "divisionId" -> {
           Integer divisionId = (Integer) entry.getValue();
           Division division =
               divisionRepository
@@ -436,9 +462,9 @@ public class LetterService {
                       () ->
                           new ResponseStatusException(HttpStatus.NOT_FOUND, "Division not found"));
           division = Hibernate.unproxy(division, Division.class);
-          eventDetailsMap.put("assignedDivision", division);
+          eventDetailsMap.put("division", division);
         }
-        case "assignedUserId" -> {
+        case "userId" -> {
           Integer userId = (Integer) entry.getValue();
           User user =
               userRepository
@@ -446,7 +472,7 @@ public class LetterService {
                   .orElseThrow(
                       () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
           user = Hibernate.unproxy(user, User.class);
-          eventDetailsMap.put("assignedUser", user);
+          eventDetailsMap.put("user", user);
         }
         default -> eventDetailsMap.put(entry.getKey(), entry.getValue());
       }

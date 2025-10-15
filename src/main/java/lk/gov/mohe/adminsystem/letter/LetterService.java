@@ -352,6 +352,32 @@ public class LetterService {
     letterEventRepository.save(letterEvent);
   }
 
+  @Transactional
+  public void acceptLetter(Integer letterId, Integer userId) {
+    Letter letter =
+        letterRepository
+            .findById(letterId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
+
+    if (letter.getAssignedUser() == null || !letter.getAssignedUser().getId().equals(userId)) {
+      throw new ResponseStatusException(
+          HttpStatus.FORBIDDEN, "You can only accept letters assigned to you");
+    }
+
+    if (letter.getStatus() != StatusEnum.PENDING_ACCEPTANCE) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Letter must be in PENDING ACCEPTANCE status to be accepted");
+    }
+
+    letter.setStatus(StatusEnum.ASSIGNED_TO_OFFICER);
+    letterRepository.save(letter);
+
+    Map<String, Object> eventDetails =
+        Map.of("newStatus", StatusEnum.ASSIGNED_TO_OFFICER, "userId", userId);
+    createLetterEvent(letter, EventTypeEnum.CHANGE_STATUS, eventDetails);
+  }
+
   private LetterEvent createLetterEvent(
       Letter letter, EventTypeEnum eventType, Map<String, Object> eventDetails) {
     LetterEvent letterEvent = new LetterEvent();

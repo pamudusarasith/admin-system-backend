@@ -35,7 +35,7 @@ public class DivisionService {
 
   @Transactional
   public void createDivision(CreateOrUpdateDivisionRequestDto dto) {
-    if (divisionRepository.existsByName(dto.name())) {
+    if (divisionRepository.existsByNameIgnoreCase(dto.name())) {
       throw new ResponseStatusException(
           HttpStatus.CONFLICT, "Division with the same name already exists");
     }
@@ -51,8 +51,8 @@ public class DivisionService {
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Division not found"));
 
-    if (!existingDivision.getName().equals(dto.name())
-        && divisionRepository.existsByName(dto.name())) {
+    if (!existingDivision.getName().equalsIgnoreCase(dto.name())
+        && divisionRepository.existsByNameIgnoreCase(dto.name())) {
       throw new ResponseStatusException(
           HttpStatus.CONFLICT, "Division with the same name already exists");
     }

@@ -48,19 +48,9 @@ public class DivisionController {
   }
 
   @PutMapping("/divisions/{id}")
-  public ResponseEntity<Division> updateDivision(
-      @PathVariable Integer id, @Valid @RequestBody Division divisionDetails) {
-    Optional<Division> optionalDivision = divisionRepository.findById(id);
-
-    if (optionalDivision.isEmpty()) {
-      return ResponseEntity.notFound().build();
-    }
-
-    Division existingDivision = optionalDivision.get();
-    existingDivision.setName(divisionDetails.getName());
-    existingDivision.setDescription(divisionDetails.getDescription());
-
-    Division updatedDivision = divisionRepository.save(existingDivision);
-    return ResponseEntity.ok(updatedDivision);
+  public ApiResponse<Void> updateDivision(
+      @PathVariable Integer id, @Valid @RequestBody CreateOrUpdateDivisionRequestDto dto) {
+    divisionService.updateDivision(id, dto);
+    return ApiResponse.message("Division updated successfully");
   }
 }

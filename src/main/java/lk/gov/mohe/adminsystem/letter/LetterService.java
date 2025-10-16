@@ -322,7 +322,7 @@ public class LetterService {
   }
 
   @Transactional
-  public void unassignDivision(Integer letterId, Integer currentUserDivisionId) {
+  public void unassignDivision(Integer letterId, Integer currentUserDivisionId, String reason) {
     Letter letter =
         letterRepository
             .findById(letterId)
@@ -349,7 +349,13 @@ public class LetterService {
     letterRepository.save(letter);
 
     Map<String, Object> eventDetails =
-        Map.of("newStatus", StatusEnum.RETURNED_FROM_DIVISION, "divisionId", letterId);
+        Map.of(
+            "newStatus",
+            StatusEnum.RETURNED_FROM_DIVISION,
+            "divisionId",
+            letterId,
+            "reason",
+            reason);
     createLetterEvent(letter, EventTypeEnum.CHANGE_STATUS, eventDetails);
   }
 

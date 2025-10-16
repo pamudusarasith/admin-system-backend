@@ -13,8 +13,13 @@ public class PermissionController {
   private final PermissionCategoryRepository permissionCategoryRepository;
   private final PermissionService permissionService;
 
-  @GetMapping("/permissions")
-  public ApiResponse<List<MainCategoryDTO>> getPermissionHierarchy() {
-    return ApiResponse.of(permissionService.getPermissionHierarchy());
-  }
+    @GetMapping("/permissions")
+    public ApiResponse<List<PermissionCategoryDto>> getPermissionHierarchy() {
+      return ApiResponse.of(permissionService.getPermissions());
+    }
+
+//  @GetMapping("/permissions")
+//  public ApiResponse<List<MainCategoryDTO>> getPermissionHierarchy() {
+//    return ApiResponse.of(permissionService.getPermissionHierarchy());
+//  }
 }

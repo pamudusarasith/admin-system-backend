@@ -12,4 +12,5 @@ public record EventDetailsDto(
     String content,
     List<AttachmentDto> attachments,
     DivisionDto division,
-    UserDto user) {}
+    UserDto user,
+    String reason) {}

@@ -310,19 +310,21 @@ public class LetterService {
   }
 
   @Transactional
-  public void unassignUser(Integer letterId, Integer userId) {
+  public void unassignUser(Integer letterId, Integer currentUserId, String reason) {
     Letter letter = letterRepository
         .findById(letterId)
         .orElseThrow(
             () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
-    if (letter.getAssignedUser() == null || !letter.getAssignedUser().getId().equals(userId)) {
+    if (letter.getAssignedUser() == null || !letter.getAssignedUser().getId().equals(currentUserId)) {
       throw new ResponseStatusException(
           HttpStatus.FORBIDDEN, "You can only return letters assigned to you");
     }
     letter.setStatus(StatusEnum.RETURNED_FROM_OFFICER);
     letter.setAssignedUser(null);
     letterRepository.save(letter);
-    Map<String, Object> eventDetails = Map.of("newStatus", StatusEnum.RETURNED_FROM_OFFICER, "userId", userId);
+    Map<String, Object> eventDetails = Map.of("newStatus", StatusEnum.RETURNED_FROM_OFFICER, "userId", currentUserId,
+        "reason",
+        reason);
     createLetterEvent(letter, EventTypeEnum.CHANGE_STATUS, eventDetails);
   }
 

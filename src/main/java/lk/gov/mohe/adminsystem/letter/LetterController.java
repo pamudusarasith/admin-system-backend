@@ -5,7 +5,6 @@ import jakarta.validation.constraints.NotBlank;
 import java.net.URI;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import lk.gov.mohe.adminsystem.util.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -125,11 +124,10 @@ public class LetterController {
   @PreAuthorize("hasAuthority('letter:return:from:division')")
   public ApiResponse<Void> returnFromDivision(
       @PathVariable Integer letterId,
-      @RequestBody Map<String, ?> body,
+      @RequestBody ReturnRequestDto dto,
       Authentication authentication) {
     Jwt jwt = (Jwt) authentication.getPrincipal();
-    String reason = (String) body.getOrDefault("reason", null);
-    letterService.returnFromDivision(letterId, jwt.getClaim("divisionId"), reason);
+    letterService.returnFromDivision(letterId, jwt.getClaim("divisionId"), dto);
     return ApiResponse.message("Letter returned from division successfully");
   }
 

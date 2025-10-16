@@ -322,6 +322,38 @@ public class LetterService {
   }
 
   @Transactional
+  public void unassignDivision(Integer letterId, Integer currentUserDivisionId) {
+    Letter letter =
+        letterRepository
+            .findById(letterId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
+
+    if (letter.getAssignedUser() != null) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Letter is assigned to a officer, unassign the officer first");
+    }
+
+    if (letter.getAssignedDivision() == null) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Letter is not assigned to any division");
+    }
+
+    if (!letter.getAssignedDivision().getId().equals(currentUserDivisionId)) {
+      throw new ResponseStatusException(
+          HttpStatus.FORBIDDEN, "You can only unassign letters from your own division");
+    }
+
+    letter.setStatus(StatusEnum.RETURNED_FROM_DIVISION);
+    letter.setAssignedDivision(null);
+    letterRepository.save(letter);
+
+    Map<String, Object> eventDetails =
+        Map.of("newStatus", StatusEnum.RETURNED_FROM_DIVISION, "divisionId", letterId);
+    createLetterEvent(letter, EventTypeEnum.CHANGE_STATUS, eventDetails);
+  }
+
+  @Transactional
   public void addNote(
       Integer letterId,
       String content,

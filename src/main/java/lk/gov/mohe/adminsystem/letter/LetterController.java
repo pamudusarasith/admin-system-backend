@@ -117,11 +117,11 @@ public class LetterController {
 
   @DeleteMapping("/letters/{letterId}/user")
   @PreAuthorize("hasAuthority('letter:assign:user')")
-  public ApiResponse<Void> unassignUser(@PathVariable Integer letterId,
+  public ApiResponse<Void> returnLetterFromUser(@PathVariable Integer letterId,
                                         @RequestParam @NotBlank(message = "Reason is required") String reason,
                                         Authentication authentication) {
     Jwt jwt = (Jwt) authentication.getPrincipal();
-    letterService.unassignUser(letterId, jwt.getClaim("userId"), reason);
+    letterService.returnLetterFromUser(letterId, jwt.getClaim("userId"), reason);
     return ApiResponse.message("User unassigned successfully");
   }
 

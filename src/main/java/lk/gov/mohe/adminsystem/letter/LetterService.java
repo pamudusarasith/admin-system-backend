@@ -315,7 +315,11 @@ public class LetterService {
         .findById(letterId)
         .orElseThrow(
             () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
-    if (letter.getAssignedUser() == null || !letter.getAssignedUser().getId().equals(currentUserId)) {
+    if (letter.getAssignedUser() == null) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Letter is not assigned to any user");
+    }
+    if (!letter.getAssignedUser().getId().equals(currentUserId)) {
       throw new ResponseStatusException(
           HttpStatus.FORBIDDEN, "You can only return letters assigned to you");
     }

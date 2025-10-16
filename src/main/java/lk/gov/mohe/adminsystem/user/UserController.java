@@ -54,14 +54,14 @@ public class UserController {
 
   @GetMapping("/profile")
   public ApiResponse<UserDto> getProfile(@AuthenticationPrincipal Jwt jwt) {
-    Integer userId = jwt.getClaim("user_id");
+    Integer userId = jwt.getClaim("userId");
     return ApiResponse.of(userService.getProfile(userId));
   }
 
   @PutMapping("/profile")
   public ApiResponse<Map<String, String>> updateProfile(
       @AuthenticationPrincipal Jwt jwt, @Valid @RequestBody UserProfileUpdateRequestDto request) {
-    Integer userId = jwt.getClaim("user_id");
+    Integer userId = jwt.getClaim("userId");
     userService.updateProfile(userId, request);
     return ApiResponse.of(Map.of("message", "Profile updated successfully"));
   }

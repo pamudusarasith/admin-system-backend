@@ -11,4 +11,5 @@ public record UserDto(
     String phoneNumber,
     String role,
     String division,
+    Boolean accountSetupRequired,
     Boolean isActive) {}

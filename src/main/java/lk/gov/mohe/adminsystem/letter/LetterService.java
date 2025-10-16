@@ -412,7 +412,7 @@ public class LetterService {
     letterRepository.save(letter);
 
     Map<String, Object> eventDetails =
-        Map.of("newStatus", StatusEnum.ASSIGNED_TO_OFFICER, "userId", userId);
+        Map.of("newStatus", StatusEnum.ASSIGNED_TO_OFFICER);
     createLetterEvent(letter, EventTypeEnum.CHANGE_STATUS, eventDetails);
   }
 

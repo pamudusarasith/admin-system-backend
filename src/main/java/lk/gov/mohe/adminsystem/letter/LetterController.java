@@ -129,7 +129,7 @@ public class LetterController {
       Authentication authentication) {
     Jwt jwt = (Jwt) authentication.getPrincipal();
     String reason = (String) body.getOrDefault("reason", null);
-    letterService.returnFromDivision(letterId, jwt.getClaim("userId"), reason);
+    letterService.returnFromDivision(letterId, jwt.getClaim("divisionId"), reason);
     return ApiResponse.message("Letter returned from division successfully");
   }
 

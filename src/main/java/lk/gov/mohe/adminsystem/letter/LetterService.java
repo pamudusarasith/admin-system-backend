@@ -331,7 +331,7 @@ public class LetterService {
 
     if (letter.getAssignedUser() != null) {
       throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "Letter is assigned to a officer, unassign the officer first");
+          HttpStatus.BAD_REQUEST, "Letter is assigned to an officer, unassign the officer first");
     }
 
     if (letter.getAssignedDivision() == null) {
@@ -353,7 +353,7 @@ public class LetterService {
             "newStatus",
             StatusEnum.RETURNED_FROM_DIVISION,
             "divisionId",
-            letterId,
+            currentUserDivisionId,
             "reason",
             reason);
     createLetterEvent(letter, EventTypeEnum.CHANGE_STATUS, eventDetails);

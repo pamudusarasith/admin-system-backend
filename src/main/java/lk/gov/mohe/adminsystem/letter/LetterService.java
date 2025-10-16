@@ -322,7 +322,7 @@ public class LetterService {
   }
 
   @Transactional
-  public void unassignDivision(Integer letterId, Integer currentUserDivisionId, String reason) {
+  public void returnFromDivision(Integer letterId, Integer currentUserDivisionId, String reason) {
     Letter letter =
         letterRepository
             .findById(letterId)

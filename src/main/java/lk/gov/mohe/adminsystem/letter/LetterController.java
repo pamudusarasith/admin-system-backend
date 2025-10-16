@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import java.net.URI;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import lk.gov.mohe.adminsystem.util.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -118,6 +119,18 @@ public class LetterController {
       @PathVariable Integer letterId, @Valid @RequestBody AssignUserRequestDto request) {
     letterService.assignUser(letterId, request.userId());
     return ApiResponse.message("User assigned successfully");
+  }
+
+  @DeleteMapping("/letters/{letterId}/division")
+  @PreAuthorize("hasAuthority('letter:return:from:division')")
+  public ApiResponse<Void> returnFromDivision(
+      @PathVariable Integer letterId,
+      @RequestBody Map<String, ?> body,
+      Authentication authentication) {
+    Jwt jwt = (Jwt) authentication.getPrincipal();
+    String reason = (String) body.getOrDefault("reason", null);
+    letterService.returnFromDivision(letterId, jwt.getClaim("userId"), reason);
+    return ApiResponse.message("Letter returned from division successfully");
   }
 
   @PatchMapping(path = "/letters/{letterId}/user", params = "action=accept")

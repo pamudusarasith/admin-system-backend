@@ -1,0 +1,24 @@
+meta {
+  name: CREATE User
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{base_url}}/users
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+  "email": "saduni@gmail.com",
+  "username": "Saduni",
+  "division_id":2,
+  "role_id":4
+  }
+}
+
+settings {
+  encodeUrl: true
+}

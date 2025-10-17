@@ -88,6 +88,7 @@ public class RoleController {
                     return new RoleDto.PermissionInfo(
                         mainCategory,
                         subCategory,
+                        permission.getName(),
                         permission.getLabel(),
                         permission.getDescription());
                   })

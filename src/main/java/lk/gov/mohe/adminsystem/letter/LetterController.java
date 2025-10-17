@@ -127,4 +127,20 @@ public class LetterController {
     letterService.acceptLetter(letterId, jwt.getClaim("userId"));
     return ApiResponse.message("Letter accepted successfully");
   }
+
+  @PatchMapping(value = "/letters/{id}", params = "action=markComplete")
+  @PreAuthorize(
+          "hasAnyAuthority('letter:all:markcomplete', 'letter:unassigned:markcomplete','letter:division:markcomplete',"
+                  + "'letter:own:markcomplete')")
+  public ApiResponse<Void> markAsComplete(
+          @PathVariable Integer id,
+          Authentication authentication) {
+    Jwt jwt = (Jwt) authentication.getPrincipal();
+    Collection<String> authorities =
+            authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+
+    letterService.markAsComplete(
+            id, jwt.getClaim("userId"), jwt.getClaim("divisionId"), authorities);
+    return ApiResponse.message("Mark as completed successfully");
+  }
 }

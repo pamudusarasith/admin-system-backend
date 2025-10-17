@@ -378,6 +378,33 @@ public class LetterService {
     createLetterEvent(letter, EventTypeEnum.CHANGE_STATUS, eventDetails);
   }
 
+  @Transactional
+  public void markAsComplete(
+          Integer letterId,
+          Integer userId,
+          Integer divisionId,
+          Collection<String> authorities) {
+    Letter letter =
+            letterRepository
+                    .findById(letterId)
+                    .orElseThrow(
+                            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
+
+    if (!hasAccessToLetter(letter, userId, divisionId, authorities, "markcomplete")) {
+      throw new ResponseStatusException(
+              HttpStatus.FORBIDDEN, "You do not have permission to mark this letter as complete");
+    }
+
+    letter.setStatus(StatusEnum.CLOSED);
+    letterRepository.save(letter);
+
+    Map<String, Object> eventDetails =
+            Map.of("newStatus", StatusEnum.CLOSED, "userId", userId);
+    createLetterEvent(letter, EventTypeEnum.CHANGE_STATUS, eventDetails);
+
+
+  }
+
   private LetterEvent createLetterEvent(
       Letter letter, EventTypeEnum eventType, Map<String, Object> eventDetails) {
     LetterEvent letterEvent = new LetterEvent();

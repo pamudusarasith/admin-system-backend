@@ -23,9 +23,10 @@ VALUES (1, 'User Management', NULL),
        (7, 'Letter Priority', 2),
        (8, 'Letter Attachments', 2),
        (9, 'Letter Completion', 2),
-       (10, 'Letter Notes', 2),
-       (11, 'Division Management', NULL),
-       (12, 'General', 11);
+       (10, 'Letter Reopen', 2),
+       (11, 'Letter Notes', 2),
+       (12, 'Division Management', NULL),
+       (13, 'General', 11);
 
 -- =================================================================
 -- Insert Permissions
@@ -76,13 +77,17 @@ VALUES ('user:read', 'Read Users', 'Permission to read user information', 1),
         'Permission to mark letters in own division as complete', 9),
        ('letter:own:markcomplete', 'Complete Own Letters', 'Permission to mark letters assigned to self as complete',
         9),
+       ('letter:all:reopen','Reopen All Letters','Permission to reopen every letter',10),
+       ('letter:unassigned:reopen','Reopen Unassigned Letters','Permission to reopen unassigned letters',10),
+       ('letter:division:reopen','Reopen Division Letters','Permission to reopen letters in own division',10),
+       ('letter:own:reopen','Reopen Own Letters','Permission to reopen letters assigned to self',10),
 
-       ('letter:all:add:note', 'Add Notes to All Letters', 'Permission to add notes to every letter', 10),
+       ('letter:all:add:note', 'Add Notes to All Letters', 'Permission to add notes to every letter', 11),
        ('letter:unassigned:add:note', 'Add Notes to Unassigned Letters',
-        'Permission to add notes to unassigned letters', 10),
+        'Permission to add notes to unassigned letters', 11),
        ('letter:division:add:note', 'Add Notes to Division Letters',
-        'Permission to add notes to letters in own division', 10),
-       ('letter:own:add:note', 'Add Notes to Own Letters', 'Permission to add notes to letters assigned to self', 10),
+        'Permission to add notes to letters in own division', 11),
+       ('letter:own:add:note', 'Add Notes to Own Letters', 'Permission to add notes to letters assigned to self', 11),
 
        ('division:read', 'Read Divisions', 'Permission to read division information', 12),
        ('division:create', 'Create Divisions', 'Permission to create new divisions', 12),

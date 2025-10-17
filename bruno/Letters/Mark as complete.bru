@@ -1,0 +1,19 @@
+meta {
+  name: Mark as complete
+  type: http
+  seq: 7
+}
+
+patch {
+  url: {{base_url}}/letters/2?action=markComplete
+  body: none
+  auth: inherit
+}
+
+params:query {
+  action: markComplete
+}
+
+settings {
+  encodeUrl: true
+}

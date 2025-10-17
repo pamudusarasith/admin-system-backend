@@ -4,6 +4,7 @@ import java.util.*;
 import lk.gov.mohe.adminsystem.util.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -12,6 +13,7 @@ public class RoleController {
   private final RoleService roleService;
 
   @GetMapping("/roles")
+  @PreAuthorize("hasAnyAuthority('role:read', 'user:create', 'user:update')")
   public ApiResponse<List<RoleDto>> getRoles(
       @RequestParam(required = false) String query,
       @RequestParam(defaultValue = "0") Integer page,
@@ -21,12 +23,14 @@ public class RoleController {
   }
 
   @PostMapping("/roles")
+  @PreAuthorize("hasAuthority('role:create')")
   public ApiResponse<Void> createRole(@RequestBody CreateOrUpdateRoleRequestDto request) {
     roleService.createRole(request);
     return ApiResponse.message("Role created successfully");
   }
 
   @PutMapping("/roles/{id}")
+  @PreAuthorize("hasAuthority('role:update')")
   public ApiResponse<Void> updateRole(
       @PathVariable Integer id, @RequestBody CreateOrUpdateRoleRequestDto request) {
     roleService.updateRole(id, request);
@@ -34,6 +38,7 @@ public class RoleController {
   }
 
   @DeleteMapping("/roles/{id}")
+  @PreAuthorize("hasAuthority('role:delete')")
   public ApiResponse<Void> deleteRole(@PathVariable Integer id) {
     roleService.deleteRole(id);
     return ApiResponse.message("Role deleted successfully");

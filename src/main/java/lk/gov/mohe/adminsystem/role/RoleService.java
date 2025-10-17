@@ -86,4 +86,20 @@ public class RoleService {
     role.setPermissions(new HashSet<>(permissions));
     roleRepository.save(role);
   }
+
+  @Transactional
+  public void deleteRole(Integer id) {
+    Role role =
+        roleRepository
+            .findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Role not found"));
+
+    int userCount = userRepository.countByRoleId(role.getId());
+    if (userCount > 0) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Cannot delete role assigned to users");
+    }
+
+    roleRepository.delete(role);
+  }
 }

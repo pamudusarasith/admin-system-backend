@@ -21,6 +21,18 @@ spring:
         jwt:
           public-key-location: classpath:keys/jwt.pub
 
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: exploreease10@gmail.com
+    password: ltfemvicvxgmowtq
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
 server:
   servlet:
     context-path: /api

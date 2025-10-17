@@ -143,4 +143,20 @@ public class LetterController {
             id, jwt.getClaim("userId"), jwt.getClaim("divisionId"), authorities);
     return ApiResponse.message("Mark as completed successfully");
   }
+
+  @PatchMapping(value = "/letters/{id}", params = "action=reopen")
+  @PreAuthorize(
+          "hasAnyAuthority('letter:all:reopen', 'letter:unassigned:reopen','letter:division:reopen',"
+                  + "'letter:own:reopen')")
+  public ApiResponse<Void> letterReOpen(
+          @PathVariable Integer id,
+          Authentication authentication) {
+    Jwt jwt = (Jwt) authentication.getPrincipal();
+    Collection<String> authorities =
+            authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+
+    letterService.letterReOpen(
+            id, jwt.getClaim("userId"), jwt.getClaim("divisionId"), authorities);
+    return ApiResponse.message("Letter reopened successfully");
+  }
 }

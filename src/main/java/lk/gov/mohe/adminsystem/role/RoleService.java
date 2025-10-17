@@ -43,4 +43,23 @@ public class RoleService {
 
     return roleDtos;
   }
+
+  @Transactional
+  public void createRole(CreateOrUpdateRoleRequestDto request) {
+    if (roleRepository.existsByNameIgnoreCase(request.name())) {
+      throw new ResponseStatusException(HttpStatus.CONFLICT, "Role name already exists");
+    }
+
+    List<Permission> permissions = permissionRepository.findAllByNameIsIn(request.permissions());
+    if (permissions.size() != request.permissions().size()) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "One or more permissions are invalid");
+    }
+
+    Role role = new Role();
+    role.setName(request.name());
+    role.setDescription(request.description());
+    role.setPermissions(new HashSet<>(permissions));
+    roleRepository.save(role);
+  }
 }

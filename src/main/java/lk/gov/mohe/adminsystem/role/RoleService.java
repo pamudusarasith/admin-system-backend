@@ -8,9 +8,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
@@ -22,9 +24,21 @@ public class RoleService {
   private final PermissionRepository permissionRepository;
 
   @Transactional(readOnly = true)
-  public Page<RoleDto> getRoles(Integer page, Integer pageSize) {
+  public Page<RoleDto> getRoles(String query, Integer page, Integer pageSize) {
     Pageable pageable = PageRequest.of(page, pageSize);
-    Page<Role> roles = roleRepository.findAll(pageable);
+
+    Specification<Role> spec = null;
+
+    if (StringUtils.hasText(query)) {
+      String likeQuery = "%" + query.toLowerCase() + "%";
+      spec =
+          (root, criteriaQuery, criteriaBuilder) ->
+              criteriaBuilder.or(
+                  criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), likeQuery),
+                  criteriaBuilder.like(criteriaBuilder.lower(root.get("description")), likeQuery));
+    }
+
+    Page<Role> roles = roleRepository.findAll(spec, pageable);
     Page<RoleDto> roleDtos = roles.map(roleMapper::roleToRoleDto);
 
     List<Integer> roleIds = roleDtos.stream().map(RoleDto::getId).toList();

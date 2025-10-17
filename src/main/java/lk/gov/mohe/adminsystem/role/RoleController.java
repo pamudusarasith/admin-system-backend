@@ -13,9 +13,10 @@ public class RoleController {
 
   @GetMapping("/roles")
   public ApiResponse<List<RoleDto>> getRoles(
+      @RequestParam(required = false) String query,
       @RequestParam(defaultValue = "0") Integer page,
       @RequestParam(defaultValue = "10") Integer pageSize) {
-    Page<RoleDto> roles = roleService.getRoles(page, pageSize);
+    Page<RoleDto> roles = roleService.getRoles(query, page, pageSize);
     return ApiResponse.paged(roles);
   }
 

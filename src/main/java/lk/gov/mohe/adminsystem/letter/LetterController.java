@@ -141,7 +141,7 @@ public class LetterController {
 
     letterService.markAsComplete(
             id, jwt.getClaim("userId"), jwt.getClaim("divisionId"), authorities);
-    return ApiResponse.message("Mark as completed successfully");
+    return ApiResponse.message("Marked as completed successfully");
   }
 
   @PatchMapping(value = "/letters/{id}", params = "action=reopen")

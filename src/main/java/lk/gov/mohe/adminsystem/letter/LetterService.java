@@ -419,19 +419,12 @@ public class LetterService {
           HttpStatus.BAD_REQUEST, "Only closed letters can be reopened");
     }
 
-    if (letter.getAssignedUser() != null
-        && letter.getAssignedDivision() != null
-        && letter.getIsAcceptedByUser() != null) {
+    if (letter.getAssignedUser() != null && letter.getAssignedDivision() != null) {
       letter.setStatus(StatusEnum.PENDING_ACCEPTANCE);
-      letter.setIsAcceptedByUser(null);
+      if (letter.getIsAcceptedByUser() != null) {
+        letter.setIsAcceptedByUser(null);
+      }
     }
-
-    if (letter.getAssignedUser() != null
-        && letter.getAssignedDivision() != null
-        && letter.getIsAcceptedByUser() == null) {
-      letter.setStatus(StatusEnum.PENDING_ACCEPTANCE);
-    }
-
     if (letter.getAssignedUser() == null
         && letter.getAssignedDivision() != null
         && letter.getIsAcceptedByUser() == null) {

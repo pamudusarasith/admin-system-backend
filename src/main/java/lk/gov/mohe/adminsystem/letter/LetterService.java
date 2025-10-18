@@ -401,7 +401,7 @@ public class LetterService {
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
 
-    if (!letter.getAssignedUser().getId().equals(userId)) {
+    if (letter.getAssignedUser() == null || !letter.getAssignedUser().getId().equals(userId)) {
       throw new ResponseStatusException(
           HttpStatus.FORBIDDEN, "You do not have permission to send a reply to this letter");
     }

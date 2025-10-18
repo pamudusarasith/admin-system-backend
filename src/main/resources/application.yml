@@ -22,10 +22,10 @@ spring:
           public-key-location: classpath:keys/jwt.pub
 
   mail:
-    host: smtp.gmail.com
-    port: 587
-    username: exploreease10@gmail.com
-    password: ltfemvicvxgmowtq
+    host: ${EMAIL_HOST}
+    port: ${EMAIL_PORT}
+    username: ${EMAIL_USERNAME}
+    password: ${EMAIL_PASSWORD}
     properties:
       mail:
         smtp:

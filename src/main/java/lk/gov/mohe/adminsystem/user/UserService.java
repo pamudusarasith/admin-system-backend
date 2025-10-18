@@ -1,7 +1,10 @@
 package lk.gov.mohe.adminsystem.user;
 
+import java.util.HashMap;
+import java.util.Map;
 import lk.gov.mohe.adminsystem.division.Division;
 import lk.gov.mohe.adminsystem.division.DivisionRepository;
+import lk.gov.mohe.adminsystem.notification.EmailService;
 import lk.gov.mohe.adminsystem.role.Role;
 import lk.gov.mohe.adminsystem.role.RoleRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,10 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
-import lk.gov.mohe.adminsystem.notification.EmailService;
-
-import java.util.Map;
-import java.util.HashMap;
 
 @Service
 @RequiredArgsConstructor

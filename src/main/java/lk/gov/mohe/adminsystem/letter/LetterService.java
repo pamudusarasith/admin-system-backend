@@ -393,6 +393,32 @@ public class LetterService {
   }
 
   @Transactional
+  public void sendReply(
+      Integer letterId, String content, MultipartFile[] attachments, Integer userId) {
+    Letter letter =
+        letterRepository
+            .findById(letterId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
+
+    if (!letter.getAssignedUser().getId().equals(userId)) {
+      throw new ResponseStatusException(
+          HttpStatus.FORBIDDEN, "You do not have permission to send a reply to this letter");
+    }
+
+    Map<String, Object> eventDetails = new HashMap<>();
+    eventDetails.put("content", content);
+
+    LetterEvent letterEvent = createLetterEvent(letter, EventTypeEnum.REPLY, eventDetails);
+
+    List<Attachment> savedAttachments = saveAttachments(letterEvent, attachments);
+    List<Integer> attachmentIds = savedAttachments.stream().map(Attachment::getId).toList();
+    eventDetails.put("attachmentIds", attachmentIds);
+    letterEvent.setEventDetails(eventDetails);
+    letterEventRepository.save(letterEvent);
+  }
+
+  @Transactional
   public void acceptLetter(Integer letterId, Integer userId) {
     Letter letter =
         letterRepository

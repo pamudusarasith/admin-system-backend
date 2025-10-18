@@ -104,6 +104,7 @@ public abstract class LetterMapper {
     }
 
     String newStatus = (String) eventDetails.get("newStatus");
+    String previousStatus = (String) eventDetails.get("previousStatus");
     String content = (String) eventDetails.get("content");
 
     List<AttachmentDto> attachments = null;
@@ -128,6 +129,6 @@ public abstract class LetterMapper {
 
     String reason = (String) eventDetails.get("reason");
 
-    return new EventDetailsDto(newStatus, content, attachments, division, user, reason);
+    return new EventDetailsDto(newStatus, previousStatus, content, attachments, division, user, reason);
   }
 }

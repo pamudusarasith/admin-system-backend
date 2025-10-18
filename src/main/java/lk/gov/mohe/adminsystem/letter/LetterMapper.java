@@ -126,6 +126,8 @@ public abstract class LetterMapper {
       user = userMapper.toUserDtoMin((User) userObj);
     }
 
-    return new EventDetailsDto(newStatus, content, attachments, division, user);
+    String reason = (String) eventDetails.get("reason");
+
+    return new EventDetailsDto(newStatus, content, attachments, division, user, reason);
   }
 }

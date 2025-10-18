@@ -14,8 +14,14 @@ public interface UserRepository
 
   User findByUsername(String username);
 
+  /**
+   * Custom query to count users by role IDs. This returns a list of Object arrays where each array
+   * contains [roleId, userCount]
+   */
   @Query("SELECT u.role.id, COUNT(u) FROM User u WHERE u.role.id IN :roleIds GROUP BY u.role.id")
   List<Object[]> countUsersByRoleIds(@Param("roleIds") List<Integer> roleIds);
+
+  Integer countByRoleId(Integer roleId);
 
   boolean existsByUsername(String username);
 

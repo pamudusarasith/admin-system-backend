@@ -108,8 +108,8 @@ public class RoleService {
             .findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Role not found"));
 
-    int userCount = userRepository.countByRoleId(role.getId());
-    if (userCount > 0) {
+    Integer userCount = userRepository.countByRoleId(role.getId());
+    if (userCount != null && userCount > 0) {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST, "Cannot delete role assigned to users");
     }

@@ -26,7 +26,7 @@ VALUES (1, 'User Management', NULL),
        (10, 'Letter Reopen', 2),
        (11, 'Letter Notes', 2),
        (12, 'Division Management', NULL),
-       (13, 'General', 11);
+       (13, 'Role Management', NULL);
 
 -- =================================================================
 -- Insert Permissions
@@ -51,6 +51,8 @@ VALUES ('user:read', 'Read Users', 'Permission to read user information', 1),
 
        ('letter:assign:division', 'Assign Letters to Divisions', 'Permission to assign letters to divisions', 6),
        ('letter:assign:user', 'Assign Letters to Users', 'Permission to assign letters to specific users', 6),
+       ('letter:return:from:division', 'Return Letters from Division', 'Permission to return letters from own division',
+        6),
 
        ('letter:all:update:priority', 'Set Priority for All Letters', 'Permission to change priority on every letter',
         7),
@@ -92,7 +94,12 @@ VALUES ('user:read', 'Read Users', 'Permission to read user information', 1),
        ('division:read', 'Read Divisions', 'Permission to read division information', 12),
        ('division:create', 'Create Divisions', 'Permission to create new divisions', 12),
        ('division:update', 'Update Divisions', 'Permission to update existing divisions', 12),
-       ('division:delete', 'Delete Divisions', 'Permission to delete divisions', 12);
+       ('division:delete', 'Delete Divisions', 'Permission to delete divisions', 12),
+
+       ('role:read', 'Read Roles', 'Permission to read role information', 13),
+       ('role:create', 'Create Roles', 'Permission to create new roles', 13),
+       ('role:update', 'Update Roles', 'Permission to update existing roles', 13),
+       ('role:delete', 'Delete Roles', 'Permission to delete roles', 13);
 
 -- =================================================================
 -- Insert Roles

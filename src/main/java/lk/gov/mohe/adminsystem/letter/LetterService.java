@@ -322,6 +322,45 @@ public class LetterService {
   }
 
   @Transactional
+  public void returnFromDivision(
+      Integer letterId, Integer currentUserDivisionId, ReturnRequestDto dto) {
+    Letter letter =
+        letterRepository
+            .findById(letterId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
+
+    if (letter.getAssignedUser() != null) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Letter is assigned to an officer, unassign the officer first");
+    }
+
+    if (letter.getAssignedDivision() == null) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Letter is not assigned to any division");
+    }
+
+    if (!letter.getAssignedDivision().getId().equals(currentUserDivisionId)) {
+      throw new ResponseStatusException(
+          HttpStatus.FORBIDDEN, "You can only unassign letters from your own division");
+    }
+
+    letter.setStatus(StatusEnum.RETURNED_FROM_DIVISION);
+    letter.setAssignedDivision(null);
+    letterRepository.save(letter);
+
+    Map<String, Object> eventDetails =
+        Map.of(
+            "newStatus",
+            StatusEnum.RETURNED_FROM_DIVISION,
+            "divisionId",
+            currentUserDivisionId,
+            "reason",
+            dto.reason());
+    createLetterEvent(letter, EventTypeEnum.CHANGE_STATUS, eventDetails);
+  }
+
+  @Transactional
   public void addNote(
       Integer letterId,
       String content,
@@ -374,8 +413,7 @@ public class LetterService {
     letter.setIsAcceptedByUser(true);
     letterRepository.save(letter);
 
-    Map<String, Object> eventDetails =
-        Map.of("newStatus", StatusEnum.ASSIGNED_TO_OFFICER, "userId", userId);
+    Map<String, Object> eventDetails = Map.of("newStatus", StatusEnum.ASSIGNED_TO_OFFICER);
     createLetterEvent(letter, EventTypeEnum.CHANGE_STATUS, eventDetails);
   }
 

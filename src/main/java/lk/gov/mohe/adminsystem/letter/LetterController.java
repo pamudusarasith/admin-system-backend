@@ -120,6 +120,17 @@ public class LetterController {
     return ApiResponse.message("User assigned successfully");
   }
 
+  @DeleteMapping("/letters/{letterId}/division")
+  @PreAuthorize("hasAuthority('letter:return:from:division')")
+  public ApiResponse<Void> returnFromDivision(
+      @PathVariable Integer letterId,
+      @RequestBody ReturnRequestDto dto,
+      Authentication authentication) {
+    Jwt jwt = (Jwt) authentication.getPrincipal();
+    letterService.returnFromDivision(letterId, jwt.getClaim("divisionId"), dto);
+    return ApiResponse.message("Letter returned from division successfully");
+  }
+
   @PatchMapping(path = "/letters/{letterId}/user", params = "action=accept")
   public ApiResponse<Void> acceptLetter(
       @PathVariable Integer letterId, Authentication authentication) {

@@ -33,6 +33,14 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
+import java.util.*;
+import java.util.function.Function;
+
+import static lk.gov.mohe.adminsystem.letter.LetterSpecs.*;
+import static lk.gov.mohe.adminsystem.util.SpecificationsUtil.andSpec;
+import static lk.gov.mohe.adminsystem.util.SpecificationsUtil.orSpec;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -306,6 +314,29 @@ public class LetterService {
     letterRepository.save(letter);
 
     Map<String, Object> eventDetails = Map.of("newStatus", StatusEnum.PENDING_ACCEPTANCE, "userId", userId);
+    createLetterEvent(letter, EventTypeEnum.CHANGE_STATUS, eventDetails);
+  }
+
+  @Transactional
+  public void returnFromUser(Integer letterId, Integer currentUserId, String reason) {
+    Letter letter = letterRepository
+        .findById(letterId)
+        .orElseThrow(
+            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
+    if (letter.getAssignedUser() == null) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Letter is not assigned to any user");
+    }
+    if (!letter.getAssignedUser().getId().equals(currentUserId)) {
+      throw new ResponseStatusException(
+          HttpStatus.FORBIDDEN, "You can only return letters assigned to you");
+    }
+    letter.setStatus(StatusEnum.RETURNED_FROM_OFFICER);
+    letter.setAssignedUser(null);
+    letterRepository.save(letter);
+    Map<String, Object> eventDetails = Map.of("newStatus", StatusEnum.RETURNED_FROM_OFFICER, "userId", currentUserId,
+        "reason",
+        reason);
     createLetterEvent(letter, EventTypeEnum.CHANGE_STATUS, eventDetails);
   }
 

@@ -7,6 +7,7 @@ import static lk.gov.mohe.adminsystem.util.SpecificationsUtil.orSpec;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import lk.gov.mohe.adminsystem.attachment.Attachment;
 import lk.gov.mohe.adminsystem.attachment.AttachmentParent;
 import lk.gov.mohe.adminsystem.attachment.AttachmentRepository;
@@ -419,27 +420,46 @@ public class LetterService {
           HttpStatus.BAD_REQUEST, "Only closed letters can be reopened");
     }
 
-    if (letter.getAssignedUser() != null && letter.getAssignedDivision() != null) {
-      letter.setStatus(StatusEnum.PENDING_ACCEPTANCE);
-      if (letter.getIsAcceptedByUser() != null) {
-        letter.setIsAcceptedByUser(null);
+    // Define transitions as lambdas and target statuses
+    List<Map.Entry<Predicate<Letter>, StatusEnum>> transitions =
+        List.of(
+            new AbstractMap.SimpleEntry<>(
+                l -> l.getAssignedUser() != null && l.getAssignedDivision() != null,
+                StatusEnum.PENDING_ACCEPTANCE),
+            new AbstractMap.SimpleEntry<>(
+                l ->
+                    l.getAssignedUser() == null
+                        && l.getAssignedDivision() != null
+                        && l.getIsAcceptedByUser() == null,
+                StatusEnum.ASSIGNED_TO_DIVISION),
+            new AbstractMap.SimpleEntry<>(
+                l ->
+                    l.getAssignedUser() == null
+                        && l.getAssignedDivision() == null
+                        && l.getIsAcceptedByUser() == null,
+                StatusEnum.NEW));
+
+    StatusEnum newStatus = null;
+    for (Map.Entry<Predicate<Letter>, StatusEnum> entry : transitions) {
+      if (entry.getKey().test(letter)) {
+        newStatus = entry.getValue();
+        break;
       }
     }
-    if (letter.getAssignedUser() == null
-        && letter.getAssignedDivision() != null
-        && letter.getIsAcceptedByUser() == null) {
-      letter.setStatus(StatusEnum.ASSIGNED_TO_DIVISION);
+
+    if (newStatus == null) {
+      // No valid transition, do nothing or throw if needed
+      return;
     }
 
-    if (letter.getAssignedUser() == null
-        && letter.getAssignedDivision() == null
-        && letter.getIsAcceptedByUser() == null) {
-      letter.setStatus(StatusEnum.NEW);
+    letter.setStatus(newStatus);
+    if (newStatus == StatusEnum.PENDING_ACCEPTANCE) {
+      letter.setIsAcceptedByUser(null);
     }
-
     letterRepository.save(letter);
 
-    Map<String, Object> eventDetails = Map.of("newStatus", StatusEnum.REOPENED, "userId", userId);
+    Map<String, Object> eventDetails =
+        Map.of("newStatus", newStatus, "previousStatus", StatusEnum.CLOSED);
     createLetterEvent(letter, EventTypeEnum.CHANGE_STATUS, eventDetails);
   }
 

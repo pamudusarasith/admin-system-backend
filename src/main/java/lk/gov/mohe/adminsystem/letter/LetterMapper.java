@@ -104,6 +104,7 @@ public abstract class LetterMapper {
     }
 
     String newStatus = (String) eventDetails.get("newStatus");
+    String previousStatus = (String) eventDetails.get("previousStatus");
     String content = (String) eventDetails.get("content");
 
     List<AttachmentDto> attachments = null;
@@ -126,6 +127,6 @@ public abstract class LetterMapper {
       user = userMapper.toUserDtoMin((User) userObj);
     }
 
-    return new EventDetailsDto(newStatus, content, attachments, division, user);
+    return new EventDetailsDto(newStatus, previousStatus, content, attachments, division, user);
   }
 }

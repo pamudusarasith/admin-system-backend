@@ -310,7 +310,7 @@ public class LetterService {
   }
 
   @Transactional
-  public void returnLetterFromUser(Integer letterId, Integer currentUserId, String reason) {
+  public void returnFromUser(Integer letterId, Integer currentUserId, String reason) {
     Letter letter = letterRepository
         .findById(letterId)
         .orElseThrow(

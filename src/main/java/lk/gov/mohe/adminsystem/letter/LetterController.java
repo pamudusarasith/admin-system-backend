@@ -121,12 +121,14 @@ public class LetterController {
         }
 
         @DeleteMapping("/letters/{letterId}/user")
-        @PreAuthorize("hasAuthority('letter:assign:user')")
-        public ApiResponse<Void> returnLetterFromUser(@PathVariable Integer letterId,
-                        @RequestParam @NotBlank(message = "Reason is required") String reason,
-                        Authentication authentication) {
+        @PreAuthorize("hasAuthority('letter:return:from:user')")
+        public ApiResponse<Void> returnFromUser(
+                @PathVariable Integer letterId,
+                @RequestParam(defaultValue = "") String reason,
+                Authentication authentication) {
                 Jwt jwt = (Jwt) authentication.getPrincipal();
-                letterService.returnLetterFromUser(letterId, jwt.getClaim("userId"), reason);
+                letterService.returnFromUser(letterId, jwt.getClaim("userId"), reason
+                );
                 return ApiResponse.message("User unassigned successfully");
         }
 

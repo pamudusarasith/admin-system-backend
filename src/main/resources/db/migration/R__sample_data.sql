@@ -52,6 +52,7 @@ VALUES ('user:read', 'Read Users', 'Permission to read user information', 1),
        ('letter:assign:user', 'Assign Letters to Users', 'Permission to assign letters to specific users', 6),
        ('letter:return:from:division', 'Return Letters from Division', 'Permission to return letters from own division',
         6),
+       ('letter:return:from:user', 'Return Letters from User', 'Permission to return letters from specific users', 6),
 
        ('letter:all:update:priority', 'Set Priority for All Letters', 'Permission to change priority on every letter',
         7),

@@ -25,7 +25,7 @@ VALUES (1, 'User Management', NULL),
        (9, 'Letter Completion', 2),
        (10, 'Letter Notes', 2),
        (11, 'Division Management', NULL),
-       (12, 'General', 11);
+       (12, 'Role Management', NULL);
 
 -- =================================================================
 -- Insert Permissions
@@ -86,10 +86,15 @@ VALUES ('user:read', 'Read Users', 'Permission to read user information', 1),
         'Permission to add notes to letters in own division', 10),
        ('letter:own:add:note', 'Add Notes to Own Letters', 'Permission to add notes to letters assigned to self', 10),
 
-       ('division:read', 'Read Divisions', 'Permission to read division information', 12),
-       ('division:create', 'Create Divisions', 'Permission to create new divisions', 12),
-       ('division:update', 'Update Divisions', 'Permission to update existing divisions', 12),
-       ('division:delete', 'Delete Divisions', 'Permission to delete divisions', 12);
+       ('division:read', 'Read Divisions', 'Permission to read division information', 11),
+       ('division:create', 'Create Divisions', 'Permission to create new divisions', 11),
+       ('division:update', 'Update Divisions', 'Permission to update existing divisions', 11),
+       ('division:delete', 'Delete Divisions', 'Permission to delete divisions', 11),
+
+       ('role:read', 'Read Roles', 'Permission to read role information', 12),
+       ('role:create', 'Create Roles', 'Permission to create new roles', 12),
+       ('role:update', 'Update Roles', 'Permission to update existing roles', 12),
+       ('role:delete', 'Delete Roles', 'Permission to delete roles', 12);
 
 -- =================================================================
 -- Insert Roles

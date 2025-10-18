@@ -142,4 +142,29 @@ public class UserService {
 
     userRepository.save(user);
   }
+
+  @Transactional
+  public void accountSetup(Integer userId, AccountSetupRequestDto request) {
+    User user =
+        userRepository
+            .findById(userId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+    if (!passwordEncoder.matches(request.oldPassword(), user.getPassword())) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Old password is incorrect");
+    }
+
+    if (request.oldPassword().equals(request.newPassword())) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "New password must be different from old password");
+    }
+
+    user.setFullName(request.fullName());
+    user.setEmail(request.email());
+    user.setPhoneNumber(request.phoneNumber());
+    user.setPassword(passwordEncoder.encode(request.newPassword()));
+    user.setAccountSetupRequired(false);
+
+    userRepository.save(user);
+  }
 }

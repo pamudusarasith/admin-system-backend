@@ -381,78 +381,74 @@ public class LetterService {
 
   @Transactional
   public void markAsComplete(
-          Integer letterId,
-          Integer userId,
-          Integer divisionId,
-          Collection<String> authorities) {
+      Integer letterId, Integer userId, Integer divisionId, Collection<String> authorities) {
     Letter letter =
-            letterRepository
-                    .findById(letterId)
-                    .orElseThrow(
-                            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
+        letterRepository
+            .findById(letterId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
 
     if (!hasAccessToLetter(letter, userId, divisionId, authorities, "markcomplete")) {
       throw new ResponseStatusException(
-              HttpStatus.FORBIDDEN, "You do not have permission to mark this letter as complete");
+          HttpStatus.FORBIDDEN, "You do not have permission to mark this letter as complete");
     }
 
     letter.setStatus(StatusEnum.CLOSED);
     letterRepository.save(letter);
 
-    Map<String, Object> eventDetails =
-            Map.of("newStatus", StatusEnum.CLOSED, "userId", userId);
+    Map<String, Object> eventDetails = Map.of("newStatus", StatusEnum.CLOSED, "userId", userId);
     createLetterEvent(letter, EventTypeEnum.CHANGE_STATUS, eventDetails);
-
-
   }
 
-    @Transactional
-    public void letterReOpen(
-            Integer letterId,
-            Integer userId,
-            Integer divisionId,
-            Collection<String> authorities) {
-        Letter letter =
-                letterRepository
-                        .findById(letterId)
-                        .orElseThrow(
-                                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
+  @Transactional
+  public void letterReOpen(
+      Integer letterId, Integer userId, Integer divisionId, Collection<String> authorities) {
+    Letter letter =
+        letterRepository
+            .findById(letterId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
 
-        if (!hasAccessToLetter(letter, userId, divisionId, authorities, "reopen")) {
-            throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN, "You do not have permission to reopen this letter");
-        }
-
-        if( letter.getStatus() != StatusEnum.CLOSED){
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "Only closed letters can be reopened");
-        }
-
-        if( letter.getAssignedUser() != null && letter.getAssignedDivision() != null && letter.getIsAcceptedByUser() != null ){
-            letter.setStatus(StatusEnum.PENDING_ACCEPTANCE);
-            letter.setIsAcceptedByUser(null);
-        }
-
-        if( letter.getAssignedUser() != null && letter.getAssignedDivision() != null && letter.getIsAcceptedByUser() == null){
-            letter.setStatus(StatusEnum.PENDING_ACCEPTANCE);
-        }
-
-        if( letter.getAssignedUser() == null && letter.getAssignedDivision() != null && letter.getIsAcceptedByUser() == null){
-            letter.setStatus(StatusEnum.ASSIGNED_TO_DIVISION);
-        }
-
-      if( letter.getAssignedUser() == null && letter.getAssignedDivision() == null && letter.getIsAcceptedByUser() == null){
-        letter.setStatus(StatusEnum.NEW);
-      }
-
-        letterRepository.save(letter);
-
-        Map<String, Object> eventDetails =
-                Map.of("newStatus", StatusEnum.REOPENED, "userId", userId);
-        createLetterEvent(letter, EventTypeEnum.CHANGE_STATUS, eventDetails);
-
-
+    if (!hasAccessToLetter(letter, userId, divisionId, authorities, "reopen")) {
+      throw new ResponseStatusException(
+          HttpStatus.FORBIDDEN, "You do not have permission to reopen this letter");
     }
+
+    if (letter.getStatus() != StatusEnum.CLOSED) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Only closed letters can be reopened");
+    }
+
+    if (letter.getAssignedUser() != null
+        && letter.getAssignedDivision() != null
+        && letter.getIsAcceptedByUser() != null) {
+      letter.setStatus(StatusEnum.PENDING_ACCEPTANCE);
+      letter.setIsAcceptedByUser(null);
+    }
+
+    if (letter.getAssignedUser() != null
+        && letter.getAssignedDivision() != null
+        && letter.getIsAcceptedByUser() == null) {
+      letter.setStatus(StatusEnum.PENDING_ACCEPTANCE);
+    }
+
+    if (letter.getAssignedUser() == null
+        && letter.getAssignedDivision() != null
+        && letter.getIsAcceptedByUser() == null) {
+      letter.setStatus(StatusEnum.ASSIGNED_TO_DIVISION);
+    }
+
+    if (letter.getAssignedUser() == null
+        && letter.getAssignedDivision() == null
+        && letter.getIsAcceptedByUser() == null) {
+      letter.setStatus(StatusEnum.NEW);
+    }
+
+    letterRepository.save(letter);
+
+    Map<String, Object> eventDetails = Map.of("newStatus", StatusEnum.REOPENED, "userId", userId);
+    createLetterEvent(letter, EventTypeEnum.CHANGE_STATUS, eventDetails);
+  }
 
   private LetterEvent createLetterEvent(
       Letter letter, EventTypeEnum eventType, Map<String, Object> eventDetails) {

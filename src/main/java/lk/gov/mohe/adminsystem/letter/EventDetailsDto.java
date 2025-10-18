@@ -9,6 +9,7 @@ import lk.gov.mohe.adminsystem.user.UserDto;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record EventDetailsDto(
     String newStatus,
+    String previousStatus,
     String content,
     List<AttachmentDto> attachments,
     DivisionDto division,

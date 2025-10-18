@@ -1,0 +1,20 @@
+meta {
+  name: REOPEN letter
+  type: http
+  seq: 7
+}
+
+patch {
+  url: {{base_url}}/letters/1?action=reopen
+  body: none
+  auth: inherit
+}
+
+params:query {
+  action: reopen
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

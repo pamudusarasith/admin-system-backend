@@ -141,17 +141,28 @@ public class LetterController {
 
   @PatchMapping(value = "/letters/{id}", params = "action=markComplete")
   @PreAuthorize(
-          "hasAnyAuthority('letter:all:markcomplete', 'letter:unassigned:markcomplete','letter:division:markcomplete',"
-                  + "'letter:own:markcomplete')")
-  public ApiResponse<Void> markAsComplete(
-          @PathVariable Integer id,
-          Authentication authentication) {
+      "hasAnyAuthority('letter:all:markcomplete', 'letter:unassigned:markcomplete','letter:division:markcomplete',"
+          + "'letter:own:markcomplete')")
+  public ApiResponse<Void> markAsComplete(@PathVariable Integer id, Authentication authentication) {
     Jwt jwt = (Jwt) authentication.getPrincipal();
     Collection<String> authorities =
-            authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+        authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
 
     letterService.markAsComplete(
-            id, jwt.getClaim("userId"), jwt.getClaim("divisionId"), authorities);
-    return ApiResponse.message("Mark as completed successfully");
+        id, jwt.getClaim("userId"), jwt.getClaim("divisionId"), authorities);
+    return ApiResponse.message("Marked as completed successfully");
+  }
+
+  @PatchMapping(value = "/letters/{id}", params = "action=reopen")
+  @PreAuthorize(
+      "hasAnyAuthority('letter:all:reopen', 'letter:unassigned:reopen','letter:division:reopen',"
+          + "'letter:own:reopen')")
+  public ApiResponse<Void> letterReOpen(@PathVariable Integer id, Authentication authentication) {
+    Jwt jwt = (Jwt) authentication.getPrincipal();
+    Collection<String> authorities =
+        authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+
+    letterService.letterReOpen(id, jwt.getClaim("userId"), jwt.getClaim("divisionId"), authorities);
+    return ApiResponse.message("Letter reopened successfully");
   }
 }

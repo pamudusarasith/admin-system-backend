@@ -7,6 +7,7 @@ import static lk.gov.mohe.adminsystem.util.SpecificationsUtil.orSpec;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import lk.gov.mohe.adminsystem.attachment.Attachment;
 import lk.gov.mohe.adminsystem.attachment.AttachmentParent;
 import lk.gov.mohe.adminsystem.attachment.AttachmentRepository;
@@ -410,6 +411,7 @@ public class LetterService {
     }
 
     letter.setStatus(StatusEnum.ASSIGNED_TO_OFFICER);
+    letter.setIsAcceptedByUser(true);
     letterRepository.save(letter);
 
     Map<String, Object> eventDetails = Map.of("newStatus", StatusEnum.ASSIGNED_TO_OFFICER);
@@ -418,29 +420,85 @@ public class LetterService {
 
   @Transactional
   public void markAsComplete(
-          Integer letterId,
-          Integer userId,
-          Integer divisionId,
-          Collection<String> authorities) {
+      Integer letterId, Integer userId, Integer divisionId, Collection<String> authorities) {
     Letter letter =
-            letterRepository
-                    .findById(letterId)
-                    .orElseThrow(
-                            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
+        letterRepository
+            .findById(letterId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
 
     if (!hasAccessToLetter(letter, userId, divisionId, authorities, "markcomplete")) {
       throw new ResponseStatusException(
-              HttpStatus.FORBIDDEN, "You do not have permission to mark this letter as complete");
+          HttpStatus.FORBIDDEN, "You do not have permission to mark this letter as complete");
     }
 
     letter.setStatus(StatusEnum.CLOSED);
     letterRepository.save(letter);
 
-    Map<String, Object> eventDetails =
-            Map.of("newStatus", StatusEnum.CLOSED, "userId", userId);
+    Map<String, Object> eventDetails = Map.of("newStatus", StatusEnum.CLOSED, "userId", userId);
     createLetterEvent(letter, EventTypeEnum.CHANGE_STATUS, eventDetails);
+  }
 
+  @Transactional
+  public void letterReOpen(
+      Integer letterId, Integer userId, Integer divisionId, Collection<String> authorities) {
+    Letter letter =
+        letterRepository
+            .findById(letterId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
 
+    if (!hasAccessToLetter(letter, userId, divisionId, authorities, "reopen")) {
+      throw new ResponseStatusException(
+          HttpStatus.FORBIDDEN, "You do not have permission to reopen this letter");
+    }
+
+    if (letter.getStatus() != StatusEnum.CLOSED) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Only closed letters can be reopened");
+    }
+
+    // Define transitions as lambdas and target statuses
+    List<Map.Entry<Predicate<Letter>, StatusEnum>> transitions =
+        List.of(
+            new AbstractMap.SimpleEntry<>(
+                l -> l.getAssignedUser() != null && l.getAssignedDivision() != null,
+                StatusEnum.PENDING_ACCEPTANCE),
+            new AbstractMap.SimpleEntry<>(
+                l ->
+                    l.getAssignedUser() == null
+                        && l.getAssignedDivision() != null
+                        && l.getIsAcceptedByUser() == null,
+                StatusEnum.ASSIGNED_TO_DIVISION),
+            new AbstractMap.SimpleEntry<>(
+                l ->
+                    l.getAssignedUser() == null
+                        && l.getAssignedDivision() == null
+                        && l.getIsAcceptedByUser() == null,
+                StatusEnum.NEW));
+
+    StatusEnum newStatus = null;
+    for (Map.Entry<Predicate<Letter>, StatusEnum> entry : transitions) {
+      if (entry.getKey().test(letter)) {
+        newStatus = entry.getValue();
+        break;
+      }
+    }
+
+    if (newStatus == null) {
+      // No valid transition, do nothing or throw if needed
+      return;
+    }
+
+    letter.setStatus(newStatus);
+    if (newStatus == StatusEnum.PENDING_ACCEPTANCE) {
+      letter.setIsAcceptedByUser(null);
+    }
+    letterRepository.save(letter);
+
+    Map<String, Object> eventDetails =
+        Map.of("newStatus", newStatus, "previousStatus", StatusEnum.CLOSED);
+    createLetterEvent(letter, EventTypeEnum.CHANGE_STATUS, eventDetails);
   }
 
   private LetterEvent createLetterEvent(

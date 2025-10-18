@@ -65,4 +65,12 @@ public class UserController {
     userService.updateProfile(userId, request);
     return ApiResponse.of(Map.of("message", "Profile updated successfully"));
   }
+
+  @PostMapping("/account-setup")
+  public ApiResponse<Void> accountSetup(
+      @AuthenticationPrincipal Jwt jwt, @Valid @RequestBody AccountSetupRequestDto request) {
+    Integer userId = jwt.getClaim("userId");
+    userService.accountSetup(userId, request);
+    return ApiResponse.message("Account setup completed successfully");
+  }
 }

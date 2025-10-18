@@ -25,7 +25,7 @@ public class LetterController {
   @GetMapping("/letters")
   @PreAuthorize(
       "hasAnyAuthority('letter:all:read', 'letter:unassigned:read', 'letter:division:read',"
-          + " 'letter:own:read')")
+          + " 'letter:own:manage')")
   public ApiResponse<List<LetterDto>> getLetters(
       @ModelAttribute LetterSearchParams params, Authentication authentication) {
     Jwt jwt = (Jwt) authentication.getPrincipal();
@@ -46,7 +46,7 @@ public class LetterController {
   @GetMapping("/letters/{id}")
   @PreAuthorize(
       "hasAnyAuthority('letter:all:read', 'letter:unassigned:read', 'letter:division:read',"
-          + " 'letter:own:read')")
+          + " 'letter:own:manage')")
   public ApiResponse<LetterDto> getLetterById(
       @PathVariable Integer id, Authentication authentication) {
     Jwt jwt = (Jwt) authentication.getPrincipal();
@@ -72,7 +72,7 @@ public class LetterController {
   @PutMapping("/letters/{id}")
   @PreAuthorize(
       "hasAnyAuthority('letter:all:update', 'letter:unassigned:update', 'letter:division:update',"
-          + " 'letter:own:update')")
+          + " 'letter:own:manage')")
   public ApiResponse<Void> updateLetter(
       @PathVariable Integer id,
       @Valid @RequestBody CreateOrUpdateLetterRequestDto request,
@@ -89,7 +89,7 @@ public class LetterController {
   @PostMapping(value = "/letters/{id}/notes", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @PreAuthorize(
       "hasAnyAuthority('letter:all:add:note', 'letter:unassigned:add:note','letter:division:add:note',"
-          + "'letter:own:add:note')")
+          + "'letter:own:manage')")
   public ApiResponse<Void> addNote(
       @PathVariable Integer id,
       @RequestPart("content") @NotBlank(message = "Content is required") String content,
@@ -142,7 +142,7 @@ public class LetterController {
   @PatchMapping(value = "/letters/{id}", params = "action=markComplete")
   @PreAuthorize(
       "hasAnyAuthority('letter:all:markcomplete', 'letter:unassigned:markcomplete','letter:division:markcomplete',"
-          + "'letter:own:markcomplete')")
+          + "'letter:own:manage')")
   public ApiResponse<Void> markAsComplete(@PathVariable Integer id, Authentication authentication) {
     Jwt jwt = (Jwt) authentication.getPrincipal();
     Collection<String> authorities =
@@ -156,7 +156,7 @@ public class LetterController {
   @PatchMapping(value = "/letters/{id}", params = "action=reopen")
   @PreAuthorize(
       "hasAnyAuthority('letter:all:reopen', 'letter:unassigned:reopen','letter:division:reopen',"
-          + "'letter:own:reopen')")
+          + "'letter:own:manage')")
   public ApiResponse<Void> letterReOpen(@PathVariable Integer id, Authentication authentication) {
     Jwt jwt = (Jwt) authentication.getPrincipal();
     Collection<String> authorities =

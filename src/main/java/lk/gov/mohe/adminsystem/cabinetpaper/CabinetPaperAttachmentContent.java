@@ -20,7 +20,7 @@ public class CabinetPaperAttachmentContent {
   @OneToOne(fetch = FetchType.LAZY, optional = false)
   @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "attachment_id", nullable = false)
-  private Attachment attachments;
+  private Attachment attachment;
 
   @Column(name = "text", length = Integer.MAX_VALUE)
   private String text;

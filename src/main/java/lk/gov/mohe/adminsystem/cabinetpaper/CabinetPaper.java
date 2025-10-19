@@ -3,13 +3,12 @@ package lk.gov.mohe.adminsystem.cabinetpaper;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import lk.gov.mohe.adminsystem.attachment.AttachmentParent;
 import lk.gov.mohe.adminsystem.attachment.ParentTypeEnum;
 import lk.gov.mohe.adminsystem.user.User;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -50,19 +49,29 @@ public class CabinetPaper implements AttachmentParent {
   @JoinColumn(name = "submitted_by_user_id", nullable = false)
   private User submittedByUser;
 
-  @ColumnDefault("now()")
   @Column(name = "created_at")
-  private OffsetDateTime createdAt;
+  private Instant createdAt;
 
-  @ColumnDefault("now()")
   @Column(name = "updated_at")
-  private OffsetDateTime updatedAt;
+  private Instant updatedAt;
 
   @Column(name = "deleted_at")
-  private OffsetDateTime deletedAt;
+  private Instant deletedAt;
 
   @Override
   public ParentTypeEnum getType() {
     return ParentTypeEnum.CABINET_PAPER;
+  }
+
+  @PrePersist
+  public void onCreate() {
+    Instant now = Instant.now();
+    createdAt = now;
+    updatedAt = now;
+  }
+
+  @PreUpdate
+  public void onUpdate() {
+    updatedAt = Instant.now();
   }
 }

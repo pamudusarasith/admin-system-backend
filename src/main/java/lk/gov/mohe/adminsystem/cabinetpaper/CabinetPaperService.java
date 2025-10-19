@@ -10,6 +10,9 @@ import lk.gov.mohe.adminsystem.storage.MinioStorageService;
 import lk.gov.mohe.adminsystem.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,9 +27,17 @@ public class CabinetPaperService {
   private final AttachmentRepository attachmentRepository;
   private final MinioStorageService storageService;
   private final CurrentUserProvider currentUserProvider;
+  private final CabinetPaperMapper cabinetPaperMapper;
 
   @Value("${custom.attachments.accepted-mime-types}")
   private final Set<String> acceptedMimeTypes;
+
+  @Transactional(readOnly = true)
+  public Page<CabinetPaperDto> getCabinetPapers(Integer page, Integer pageSize) {
+    Pageable pageable = PageRequest.of(page, pageSize);
+    Page<CabinetPaper> cabinetPapers = cabinetPaperRepository.findAll(pageable);
+    return cabinetPapers.map(cabinetPaperMapper::toDto);
+  }
 
   @Transactional
   public CabinetPaper createCabinetPaper(
@@ -35,20 +46,14 @@ public class CabinetPaperService {
       throw new ResponseStatusException(HttpStatus.CONFLICT, "Reference ID already exists");
     }
 
-    CabinetPaper cabinetPaper = new CabinetPaper();
-    cabinetPaper.setReferenceId(request.referenceId());
-    cabinetPaper.setSubject(request.subject());
-    cabinetPaper.setSummary(request.summary());
-    cabinetPaper.setStatus(CabinetPaperStatusEnum.DRAFT);
+    CabinetPaper cabinetPaper = cabinetPaperMapper.toEntity(request);
 
-    if (request.categoryId() != null) {
-      CabinetPaperCategory category =
-          categoryRepository
-              .findById(request.categoryId())
-              .orElseThrow(
-                  () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found"));
-      cabinetPaper.setCategory(category);
-    }
+    CabinetPaperCategory category =
+        categoryRepository
+            .findById(request.categoryId())
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found"));
+    cabinetPaper.setCategory(category);
 
     User currentUser = currentUserProvider.getCurrentUserOrThrow();
     cabinetPaper.setSubmittedByUser(currentUser);

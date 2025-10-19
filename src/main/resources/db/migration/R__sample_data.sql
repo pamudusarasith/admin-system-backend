@@ -26,7 +26,8 @@ VALUES (1, 'User Management', NULL),
        (10, 'Letter Reopen', 2),
        (11, 'Letter Notes', 2),
        (12, 'Division Management', NULL),
-       (13, 'Role Management', NULL);
+       (13, 'Role Management', NULL),
+       (14, 'Cabinet Paper Management', NULL);
 
 -- =================================================================
 -- Insert Permissions
@@ -93,7 +94,10 @@ VALUES ('user:read', 'Read Users', 'Permission to read user information', 1),
        ('role:read', 'Read Roles', 'Permission to read role information', 13),
        ('role:create', 'Create Roles', 'Permission to create new roles', 13),
        ('role:update', 'Update Roles', 'Permission to update existing roles', 13),
-       ('role:delete', 'Delete Roles', 'Permission to delete roles', 13);
+       ('role:delete', 'Delete Roles', 'Permission to delete roles', 13),
+
+       ('cabinet:read', 'Read Cabinet Papers', 'Permission to read cabinet papers', 14),
+       ('cabinet:create', 'Create Cabinet Papers', 'Permission to create new cabinet papers', 14);
 
 -- =================================================================
 -- Insert Roles
@@ -122,7 +126,7 @@ SELECT r.id, p.id
 FROM roles r
          CROSS JOIN permissions p
 WHERE r.name = 'POSTAL_OFFICER'
-  AND p.name IN ('letter:unassigned:read', 'letter:unassigned:update', 'letter:create', 'letter:assign:division');
+  AND p.name IN ('letter:unassigned:read', 'letter:unassigned:update', 'letter:create', 'letter:assign:division', 'cabinet:read', 'cabinet:create');
 
 -- =================================================================
 -- Insert Divisions

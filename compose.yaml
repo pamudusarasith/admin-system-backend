@@ -15,3 +15,10 @@ services:
     volumes:
       - ./minio-data:/data
     command: server /data --console-address=":9001"
+  rabbitmq:
+    image: rabbitmq:3.13-management # Use the version with the web UI
+    env_file:
+      - .env
+    ports:
+      - "5672:5672"   # Port for your Spring Boot app to connect
+      - "15672:15672"  # Port for the web management UI

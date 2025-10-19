@@ -55,6 +55,7 @@ public class CabinetPaperCategoryService {
 
         try {
             category.setName(categoryDetails.getName());
+            category.setDescription(categoryDetails.getDescription());
             return repository.save(category);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to update category", e);

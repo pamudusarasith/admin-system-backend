@@ -33,14 +33,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDate;
-import java.util.*;
-import java.util.function.Function;
-
-import static lk.gov.mohe.adminsystem.letter.LetterSpecs.*;
-import static lk.gov.mohe.adminsystem.util.SpecificationsUtil.andSpec;
-import static lk.gov.mohe.adminsystem.util.SpecificationsUtil.orSpec;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -102,26 +94,29 @@ public class LetterService {
     spec = withText(spec, filters.getSender(), LetterSpecs::hasSenderContaining);
     spec = withText(spec, filters.getReceiver(), LetterSpecs::hasReceiverContaining);
 
-    spec = applyDateFilters(
-        spec,
-        filters.getSentDate(),
-        filters.getSentDateFrom(),
-        filters.getSentDateTo(),
-        LetterSpecs::hasSentDate,
-        LetterSpecs::hasSentDateOnOrAfter,
-        LetterSpecs::hasSentDateOnOrBefore);
+    spec =
+        applyDateFilters(
+            spec,
+            filters.getSentDate(),
+            filters.getSentDateFrom(),
+            filters.getSentDateTo(),
+            LetterSpecs::hasSentDate,
+            LetterSpecs::hasSentDateOnOrAfter,
+            LetterSpecs::hasSentDateOnOrBefore);
 
-    spec = applyDateFilters(
-        spec,
-        filters.getReceivedDate(),
-        filters.getReceivedDateFrom(),
-        filters.getReceivedDateTo(),
-        LetterSpecs::hasReceivedDate,
-        LetterSpecs::hasReceivedDateOnOrAfter,
-        LetterSpecs::hasReceivedDateOnOrBefore);
+    spec =
+        applyDateFilters(
+            spec,
+            filters.getReceivedDate(),
+            filters.getReceivedDateFrom(),
+            filters.getReceivedDateTo(),
+            LetterSpecs::hasReceivedDate,
+            LetterSpecs::hasReceivedDateOnOrAfter,
+            LetterSpecs::hasReceivedDateOnOrBefore);
 
-    spec = withText(
-        spec, filters.getAssignedDivision(), LetterSpecs::hasAssignedDivisionNameContaining);
+    spec =
+        withText(
+            spec, filters.getAssignedDivision(), LetterSpecs::hasAssignedDivisionNameContaining);
     spec = withText(spec, filters.getAssignedUser(), LetterSpecs::hasAssignedUserContaining);
 
     return spec;
@@ -147,9 +142,10 @@ public class LetterService {
   }
 
   private Page<LetterDto> findLetters(Specification<Letter> spec, Pageable pageable) {
-    Page<Letter> letters = (spec == null)
-        ? letterRepository.findAll(pageable)
-        : letterRepository.findAll(spec, pageable);
+    Page<Letter> letters =
+        (spec == null)
+            ? letterRepository.findAll(pageable)
+            : letterRepository.findAll(spec, pageable);
 
     return letters.map(letterMapper::toLetterDtoMin);
   }
@@ -192,19 +188,21 @@ public class LetterService {
   @Transactional(readOnly = true)
   public LetterDto getLetterById(
       Integer id, Integer userId, Integer divisionId, Collection<String> authorities) {
-    Letter letter = letterRepository
-        .findById(id)
-        .orElseThrow(
-            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
+    Letter letter =
+        letterRepository
+            .findById(id)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
 
     if (!hasAccessToLetter(letter, userId, divisionId, authorities, "read")) {
       throw new ResponseStatusException(
           HttpStatus.FORBIDDEN, "You do not have permission to access this letter");
     }
 
-    List<Attachment> attachments = attachmentRepository.findByParentTypeAndParentId(ParentTypeEnum.LETTER,
-        letter.getId());
-    List<LetterEvent> events = letterEventRepository.findByLetterIdOrderByCreatedAtDesc(letter.getId());
+    List<Attachment> attachments =
+        attachmentRepository.findByParentTypeAndParentId(ParentTypeEnum.LETTER, letter.getId());
+    List<LetterEvent> events =
+        letterEventRepository.findByLetterIdOrderByCreatedAtDesc(letter.getId());
     events.forEach(
         event -> {
           Map<String, Object> details = event.getEventDetails();
@@ -241,10 +239,11 @@ public class LetterService {
       Integer userId,
       Integer divisionId,
       Collection<String> authorities) {
-    Letter letter = letterRepository
-        .findById(id)
-        .orElseThrow(
-            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
+    Letter letter =
+        letterRepository
+            .findById(id)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
 
     if (!hasAccessToLetter(letter, userId, divisionId, authorities, "update")) {
       throw new ResponseStatusException(
@@ -258,36 +257,40 @@ public class LetterService {
 
   @Transactional
   public void assignDivision(Integer letterId, Integer divisionId) {
-    Letter letter = letterRepository
-        .findById(letterId)
-        .orElseThrow(
-            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
+    Letter letter =
+        letterRepository
+            .findById(letterId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
 
     if (letter.getAssignedDivision() != null) {
       throw new ResponseStatusException(
           HttpStatus.CONFLICT, "Letter is already assigned to a division");
     }
 
-    Division division = divisionRepository
-        .findById(divisionId)
-        .orElseThrow(
-            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Division not found"));
+    Division division =
+        divisionRepository
+            .findById(divisionId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Division not found"));
 
     letter.setStatus(StatusEnum.ASSIGNED_TO_DIVISION);
     letter.setAssignedDivision(division);
     letter.setAssignedUser(null);
     letterRepository.save(letter);
 
-    Map<String, Object> eventDetails = Map.of("newStatus", StatusEnum.ASSIGNED_TO_DIVISION, "divisionId", divisionId);
+    Map<String, Object> eventDetails =
+        Map.of("newStatus", StatusEnum.ASSIGNED_TO_DIVISION, "divisionId", divisionId);
     createLetterEvent(letter, EventTypeEnum.CHANGE_STATUS, eventDetails);
   }
 
   @Transactional
   public void assignUser(Integer letterId, Integer userId) {
-    Letter letter = letterRepository
-        .findById(letterId)
-        .orElseThrow(
-            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
+    Letter letter =
+        letterRepository
+            .findById(letterId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
 
     if (letter.getAssignedDivision() == null) {
       throw new ResponseStatusException(
@@ -300,9 +303,10 @@ public class LetterService {
           HttpStatus.CONFLICT, "Letter is already assigned to a user");
     }
 
-    User user = userRepository
-        .findById(userId)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+    User user =
+        userRepository
+            .findById(userId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
     if (!user.getDivision().getId().equals(letter.getAssignedDivision().getId())) {
       throw new ResponseStatusException(
@@ -313,16 +317,18 @@ public class LetterService {
     letter.setAssignedUser(user);
     letterRepository.save(letter);
 
-    Map<String, Object> eventDetails = Map.of("newStatus", StatusEnum.PENDING_ACCEPTANCE, "userId", userId);
+    Map<String, Object> eventDetails =
+        Map.of("newStatus", StatusEnum.PENDING_ACCEPTANCE, "userId", userId);
     createLetterEvent(letter, EventTypeEnum.CHANGE_STATUS, eventDetails);
   }
 
   @Transactional
   public void returnFromUser(Integer letterId, Integer currentUserId, String reason) {
-    Letter letter = letterRepository
-        .findById(letterId)
-        .orElseThrow(
-            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
+    Letter letter =
+        letterRepository
+            .findById(letterId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
     if (letter.getAssignedUser() == null) {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST, "Letter is not assigned to any user");
@@ -334,19 +340,25 @@ public class LetterService {
     letter.setStatus(StatusEnum.RETURNED_FROM_OFFICER);
     letter.setAssignedUser(null);
     letterRepository.save(letter);
-    Map<String, Object> eventDetails = Map.of("newStatus", StatusEnum.RETURNED_FROM_OFFICER, "userId", currentUserId,
-        "reason",
-        reason);
+    Map<String, Object> eventDetails =
+        Map.of(
+            "newStatus",
+            StatusEnum.RETURNED_FROM_OFFICER,
+            "userId",
+            currentUserId,
+            "reason",
+            reason);
     createLetterEvent(letter, EventTypeEnum.CHANGE_STATUS, eventDetails);
   }
 
   @Transactional
   public void returnFromDivision(
       Integer letterId, Integer currentUserDivisionId, ReturnRequestDto dto) {
-    Letter letter = letterRepository
-        .findById(letterId)
-        .orElseThrow(
-            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
+    Letter letter =
+        letterRepository
+            .findById(letterId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
 
     if (letter.getAssignedUser() != null) {
       throw new ResponseStatusException(
@@ -367,13 +379,14 @@ public class LetterService {
     letter.setAssignedDivision(null);
     letterRepository.save(letter);
 
-    Map<String, Object> eventDetails = Map.of(
-        "newStatus",
-        StatusEnum.RETURNED_FROM_DIVISION,
-        "divisionId",
-        currentUserDivisionId,
-        "reason",
-        dto.reason());
+    Map<String, Object> eventDetails =
+        Map.of(
+            "newStatus",
+            StatusEnum.RETURNED_FROM_DIVISION,
+            "divisionId",
+            currentUserDivisionId,
+            "reason",
+            dto.reason());
     createLetterEvent(letter, EventTypeEnum.CHANGE_STATUS, eventDetails);
   }
 
@@ -385,10 +398,11 @@ public class LetterService {
       Integer userId,
       Integer divisionId,
       Collection<String> authorities) {
-    Letter letter = letterRepository
-        .findById(letterId)
-        .orElseThrow(
-            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
+    Letter letter =
+        letterRepository
+            .findById(letterId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
 
     if (!hasAccessToLetter(letter, userId, divisionId, authorities, "add:note")) {
       throw new ResponseStatusException(
@@ -435,10 +449,11 @@ public class LetterService {
 
   @Transactional
   public void acceptLetter(Integer letterId, Integer userId) {
-    Letter letter = letterRepository
-        .findById(letterId)
-        .orElseThrow(
-            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
+    Letter letter =
+        letterRepository
+            .findById(letterId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
 
     if (letter.getAssignedUser() == null || !letter.getAssignedUser().getId().equals(userId)) {
       throw new ResponseStatusException(
@@ -459,12 +474,45 @@ public class LetterService {
   }
 
   @Transactional
+  public void addAttachment(
+      Integer letterId,
+      MultipartFile[] attachments,
+      Integer userId,
+      Integer divisionId,
+      Collection<String> authorities) {
+    Letter letter =
+        letterRepository
+            .findById(letterId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
+
+    if (!hasAccessToLetter(letter, userId, divisionId, authorities, "add:attachments")) {
+      throw new ResponseStatusException(
+          HttpStatus.FORBIDDEN, "You do not have permission to add an attachment to this letter");
+    }
+    if (attachments == null || attachments.length == 0) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Attachments field is required");
+    }
+
+    Map<String, Object> eventDetails = new HashMap<>();
+
+    LetterEvent letterEvent = createLetterEvent(letter, EventTypeEnum.ADD_ATTACHMENT, eventDetails);
+
+    List<Attachment> savedAttachments = saveAttachments(letterEvent, attachments);
+    List<Integer> attachmentIds = savedAttachments.stream().map(Attachment::getId).toList();
+    eventDetails.put("attachmentIds", attachmentIds);
+    letterEvent.setEventDetails(eventDetails);
+    letterEventRepository.save(letterEvent);
+  }
+
+  @Transactional
   public void markAsComplete(
       Integer letterId, Integer userId, Integer divisionId, Collection<String> authorities) {
-    Letter letter = letterRepository
-        .findById(letterId)
-        .orElseThrow(
-            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
+    Letter letter =
+        letterRepository
+            .findById(letterId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
 
     if (!hasAccessToLetter(letter, userId, divisionId, authorities, "markcomplete")) {
       throw new ResponseStatusException(
@@ -481,10 +529,11 @@ public class LetterService {
   @Transactional
   public void letterReOpen(
       Integer letterId, Integer userId, Integer divisionId, Collection<String> authorities) {
-    Letter letter = letterRepository
-        .findById(letterId)
-        .orElseThrow(
-            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
+    Letter letter =
+        letterRepository
+            .findById(letterId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
 
     if (!hasAccessToLetter(letter, userId, divisionId, authorities, "reopen")) {
       throw new ResponseStatusException(
@@ -497,20 +546,23 @@ public class LetterService {
     }
 
     // Define transitions as lambdas and target statuses
-    List<Map.Entry<Predicate<Letter>, StatusEnum>> transitions = List.of(
-        new AbstractMap.SimpleEntry<>(
-            l -> l.getAssignedUser() != null && l.getAssignedDivision() != null,
-            StatusEnum.PENDING_ACCEPTANCE),
-        new AbstractMap.SimpleEntry<>(
-            l -> l.getAssignedUser() == null
-                && l.getAssignedDivision() != null
-                && l.getIsAcceptedByUser() == null,
-            StatusEnum.ASSIGNED_TO_DIVISION),
-        new AbstractMap.SimpleEntry<>(
-            l -> l.getAssignedUser() == null
-                && l.getAssignedDivision() == null
-                && l.getIsAcceptedByUser() == null,
-            StatusEnum.NEW));
+    List<Map.Entry<Predicate<Letter>, StatusEnum>> transitions =
+        List.of(
+            new AbstractMap.SimpleEntry<>(
+                l -> l.getAssignedUser() != null && l.getAssignedDivision() != null,
+                StatusEnum.PENDING_ACCEPTANCE),
+            new AbstractMap.SimpleEntry<>(
+                l ->
+                    l.getAssignedUser() == null
+                        && l.getAssignedDivision() != null
+                        && l.getIsAcceptedByUser() == null,
+                StatusEnum.ASSIGNED_TO_DIVISION),
+            new AbstractMap.SimpleEntry<>(
+                l ->
+                    l.getAssignedUser() == null
+                        && l.getAssignedDivision() == null
+                        && l.getIsAcceptedByUser() == null,
+                StatusEnum.NEW));
 
     StatusEnum newStatus = null;
     for (Map.Entry<Predicate<Letter>, StatusEnum> entry : transitions) {
@@ -531,7 +583,8 @@ public class LetterService {
     }
     letterRepository.save(letter);
 
-    Map<String, Object> eventDetails = Map.of("newStatus", newStatus, "previousStatus", StatusEnum.CLOSED);
+    Map<String, Object> eventDetails =
+        Map.of("newStatus", newStatus, "previousStatus", StatusEnum.CLOSED);
     createLetterEvent(letter, EventTypeEnum.CHANGE_STATUS, eventDetails);
   }
 
@@ -586,15 +639,18 @@ public class LetterService {
       Collection<String> authorities,
       String action) {
     boolean hasAllAccess = authorities.contains("letter:all:" + action);
-    boolean hasUnassignedAccess = authorities.contains("letter:unassigned:" + action)
-        && letter.getAssignedDivision() == null
-        && letter.getAssignedUser() == null;
-    boolean hasDivisionAccess = authorities.contains("letter:division:" + action)
-        && letter.getAssignedDivision() != null
-        && letter.getAssignedDivision().getId().equals(divisionId);
-    boolean hasOwnAccess = authorities.contains("letter:own:manage")
-        && letter.getAssignedUser() != null
-        && letter.getAssignedUser().getId().equals(userId);
+    boolean hasUnassignedAccess =
+        authorities.contains("letter:unassigned:" + action)
+            && letter.getAssignedDivision() == null
+            && letter.getAssignedUser() == null;
+    boolean hasDivisionAccess =
+        authorities.contains("letter:division:" + action)
+            && letter.getAssignedDivision() != null
+            && letter.getAssignedDivision().getId().equals(divisionId);
+    boolean hasOwnAccess =
+        authorities.contains("letter:own:manage")
+            && letter.getAssignedUser() != null
+            && letter.getAssignedUser().getId().equals(userId);
     return hasAllAccess || hasUnassignedAccess || hasDivisionAccess || hasOwnAccess;
   }
 
@@ -610,19 +666,22 @@ public class LetterService {
         }
         case "divisionId" -> {
           Integer divisionId = (Integer) entry.getValue();
-          Division division = divisionRepository
-              .findById(divisionId)
-              .orElseThrow(
-                  () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Division not found"));
+          Division division =
+              divisionRepository
+                  .findById(divisionId)
+                  .orElseThrow(
+                      () ->
+                          new ResponseStatusException(HttpStatus.NOT_FOUND, "Division not found"));
           division = Hibernate.unproxy(division, Division.class);
           eventDetailsMap.put("division", division);
         }
         case "userId" -> {
           Integer userId = (Integer) entry.getValue();
-          User user = userRepository
-              .findById(userId)
-              .orElseThrow(
-                  () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+          User user =
+              userRepository
+                  .findById(userId)
+                  .orElseThrow(
+                      () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
           user = Hibernate.unproxy(user, User.class);
           eventDetailsMap.put("user", user);
         }

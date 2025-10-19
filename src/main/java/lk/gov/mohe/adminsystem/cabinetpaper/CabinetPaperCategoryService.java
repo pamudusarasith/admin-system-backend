@@ -1,18 +1,19 @@
 package lk.gov.mohe.adminsystem.cabinetpaper;
 
-import java.util.Optional;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import lombok.RequiredArgsConstructor;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class CabinetPaperCategoryService {
-    private CabinetPaperCategoryRepository repository;
+
+    private final CabinetPaperCategoryRepository repository;
 
     public Page<CabinetPaperCategory> getAllCategories(String query, Integer page, Integer pageSize) {
         Pageable pageable = PageRequest.of(page, pageSize);
@@ -29,7 +30,6 @@ public class CabinetPaperCategoryService {
     }
 
     public CabinetPaperCategory createCategory(CabinetPaperCategory category) {
-        // Check if category with same name already exists
         if (repository.existsByName(category.getName())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Category with name '" + category.getName() + "' already exists");
         }
@@ -45,7 +45,6 @@ public class CabinetPaperCategoryService {
         CabinetPaperCategory category = repository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found with id: " + id));
 
-        // Check if another category with same name exists (excluding current category)
         Optional<CabinetPaperCategory> existingCategory = repository.findByName(categoryDetails.getName());
         if (existingCategory.isPresent() && !existingCategory.get().getId().equals(id)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Category with name '" + categoryDetails.getName() + "' already exists");

@@ -26,7 +26,8 @@ VALUES (1, 'User Management', NULL),
        (10, 'Letter Reopen', 2),
        (11, 'Letter Notes', 2),
        (12, 'Division Management', NULL),
-       (13, 'Role Management', NULL);
+       (13, 'Role Management', NULL),
+       (14, 'Cabinet Paper Category Management', NULL);
 
 -- =================================================================
 -- Insert Permissions
@@ -93,7 +94,13 @@ VALUES ('user:read', 'Read Users', 'Permission to read user information', 1),
        ('role:read', 'Read Roles', 'Permission to read role information', 13),
        ('role:create', 'Create Roles', 'Permission to create new roles', 13),
        ('role:update', 'Update Roles', 'Permission to update existing roles', 13),
-       ('role:delete', 'Delete Roles', 'Permission to delete roles', 13);
+       ('role:delete', 'Delete Roles', 'Permission to delete roles', 13),
+
+       ('cabinet_paper_category:read', 'Read Cabinet Paper Categories', 'Permission to read cabinet paper categories', 14),
+       ('cabinet_paper_category:create', 'Create Cabinet Paper Categories', 'Permission to create new cabinet paper categories', 14),
+       ('cabinet_paper_category:update', 'Update Cabinet Paper Categories', 'Permission to update existing cabinet paper categories', 14),
+       ('cabinet_paper_category:delete', 'Delete Cabinet Paper Categories', 'Permission to delete cabinet paper categories', 14);
+
 
 -- =================================================================
 -- Insert Roles

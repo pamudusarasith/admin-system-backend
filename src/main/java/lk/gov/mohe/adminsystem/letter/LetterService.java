@@ -33,14 +33,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDate;
-import java.util.*;
-import java.util.function.Function;
-
-import static lk.gov.mohe.adminsystem.letter.LetterSpecs.*;
-import static lk.gov.mohe.adminsystem.util.SpecificationsUtil.andSpec;
-import static lk.gov.mohe.adminsystem.util.SpecificationsUtil.orSpec;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -456,6 +448,34 @@ public class LetterService {
 
     Map<String, Object> eventDetails = Map.of("newStatus", StatusEnum.ASSIGNED_TO_OFFICER);
     createLetterEvent(letter, EventTypeEnum.CHANGE_STATUS, eventDetails);
+  }
+
+  @Transactional
+  public void addAttachment(
+          Integer letterId,
+          MultipartFile[] attachments,
+          Integer userId,
+          Integer divisionId,
+          Collection<String> authorities) {
+    Letter letter = letterRepository
+            .findById(letterId)
+            .orElseThrow(
+                    () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Letter not found"));
+
+    if (!hasAccessToLetter(letter, userId, divisionId, authorities, "add:attachments")) {
+      throw new ResponseStatusException(
+              HttpStatus.FORBIDDEN, "You do not have permission to add an attachment to this letter");
+    }
+
+    Map<String, Object> eventDetails = new HashMap<>();
+
+    LetterEvent letterEvent = createLetterEvent(letter, EventTypeEnum.ADD_ATTACHMENT, eventDetails);
+
+    List<Attachment> savedAttachments = saveAttachments(letterEvent, attachments);
+    List<Integer> attachmentIds = savedAttachments.stream().map(Attachment::getId).toList();
+    eventDetails.put("attachmentIds", attachmentIds);
+    letterEvent.setEventDetails(eventDetails);
+    letterEventRepository.save(letterEvent);
   }
 
   @Transactional

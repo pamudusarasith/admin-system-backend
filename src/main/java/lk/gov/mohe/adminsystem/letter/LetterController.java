@@ -2,6 +2,10 @@ package lk.gov.mohe.adminsystem.letter;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import java.net.URI;
+import java.util.Collection;
+import java.util.List;
 import lk.gov.mohe.adminsystem.util.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -14,14 +18,10 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.net.URI;
-import java.util.Collection;
-import java.util.List;
-
 @RestController
 @RequiredArgsConstructor
 public class LetterController {
-    private final LetterService letterService;
+  private final LetterService letterService;
 
   @GetMapping("/letters")
   @PreAuthorize(
@@ -33,15 +33,16 @@ public class LetterController {
     Collection<String> authorities =
         authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
 
-        Page<LetterDto> letterPage = letterService.getAccessibleLetters(
-                jwt.getClaim("userId"),
-                jwt.getClaim("divisionId"),
-                authorities,
-                params,
-                params.getPage(),
-                params.getPageSize());
-        return ApiResponse.paged(letterPage);
-    }
+    Page<LetterDto> letterPage =
+        letterService.getAccessibleLetters(
+            jwt.getClaim("userId"),
+            jwt.getClaim("divisionId"),
+            authorities,
+            params,
+            params.getPage(),
+            params.getPageSize());
+    return ApiResponse.paged(letterPage);
+  }
 
   @GetMapping("/letters/{id}")
   @PreAuthorize(
@@ -53,20 +54,21 @@ public class LetterController {
     Collection<String> authorities =
         authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
 
-        LetterDto letter = letterService.getLetterById(
-                id, jwt.getClaim("userId"), jwt.getClaim("divisionId"), authorities);
-        return ApiResponse.of(letter);
-    }
+    LetterDto letter =
+        letterService.getLetterById(
+            id, jwt.getClaim("userId"), jwt.getClaim("divisionId"), authorities);
+    return ApiResponse.of(letter);
+  }
 
-    @PostMapping(value = "/letters", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasAuthority('letter:create')")
-    public ResponseEntity<ApiResponse<Void>> createLetter(
-            @Valid @RequestPart("details") CreateOrUpdateLetterRequestDto request,
-            @RequestPart(value = "attachments", required = false) MultipartFile[] attachments) {
-        Letter letter = letterService.createLetter(request, attachments);
-        return ResponseEntity.created(URI.create("/letters/" + letter.getId()))
-                .body(ApiResponse.message("Letter created successfully"));
-    }
+  @PostMapping(value = "/letters", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  @PreAuthorize("hasAuthority('letter:create')")
+  public ResponseEntity<ApiResponse<Void>> createLetter(
+      @Valid @RequestPart("details") CreateOrUpdateLetterRequestDto request,
+      @RequestPart(value = "attachments", required = false) MultipartFile[] attachments) {
+    Letter letter = letterService.createLetter(request, attachments);
+    return ResponseEntity.created(URI.create("/letters/" + letter.getId()))
+        .body(ApiResponse.message("Letter created successfully"));
+  }
 
   @PutMapping("/letters/{id}")
   @PreAuthorize(
@@ -80,10 +82,10 @@ public class LetterController {
     Collection<String> authorities =
         authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
 
-        letterService.updateLetter(
-                id, request, jwt.getClaim("userId"), jwt.getClaim("divisionId"), authorities);
-        return ApiResponse.message("Letter updated successfully");
-    }
+    letterService.updateLetter(
+        id, request, jwt.getClaim("userId"), jwt.getClaim("divisionId"), authorities);
+    return ApiResponse.message("Letter updated successfully");
+  }
 
   @PostMapping(value = "/letters/{id}/notes", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @PreAuthorize(
@@ -98,50 +100,48 @@ public class LetterController {
     Collection<String> authorities =
         authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
 
-        letterService.addNote(
-                id, content, attachments, jwt.getClaim("userId"), jwt.getClaim("divisionId"),
-                authorities);
-        return ApiResponse.message("Note added successfully");
-    }
+    letterService.addNote(
+        id, content, attachments, jwt.getClaim("userId"), jwt.getClaim("divisionId"), authorities);
+    return ApiResponse.message("Note added successfully");
+  }
 
-    @PutMapping("/letters/{letterId}/division")
-    @PreAuthorize("hasAuthority('letter:assign:division')")
-    public ApiResponse<Void> assignDivision(
-            @PathVariable Integer letterId, @Valid @RequestBody AssignDivisionRequestDto request) {
-        letterService.assignDivision(letterId, request.divisionId());
-        return ApiResponse.message("Division assigned successfully");
-    }
+  @PutMapping("/letters/{letterId}/division")
+  @PreAuthorize("hasAuthority('letter:assign:division')")
+  public ApiResponse<Void> assignDivision(
+      @PathVariable Integer letterId, @Valid @RequestBody AssignDivisionRequestDto request) {
+    letterService.assignDivision(letterId, request.divisionId());
+    return ApiResponse.message("Division assigned successfully");
+  }
 
-    @PutMapping("/letters/{letterId}/user")
-    @PreAuthorize("hasAuthority('letter:assign:user')")
-    public ApiResponse<Void> assignUser(
-            @PathVariable Integer letterId, @Valid @RequestBody AssignUserRequestDto request) {
-        letterService.assignUser(letterId, request.userId());
-        return ApiResponse.message("User assigned successfully");
-    }
+  @PutMapping("/letters/{letterId}/user")
+  @PreAuthorize("hasAuthority('letter:assign:user')")
+  public ApiResponse<Void> assignUser(
+      @PathVariable Integer letterId, @Valid @RequestBody AssignUserRequestDto request) {
+    letterService.assignUser(letterId, request.userId());
+    return ApiResponse.message("User assigned successfully");
+  }
 
-    @DeleteMapping("/letters/{letterId}/user")
-    @PreAuthorize("hasAuthority('letter:return:from:user')")
-    public ApiResponse<Void> returnFromUser(
-            @PathVariable Integer letterId,
-            @RequestParam(defaultValue = "") String reason,
-            Authentication authentication) {
-        Jwt jwt = (Jwt) authentication.getPrincipal();
-        letterService.returnFromUser(letterId, jwt.getClaim("userId"), reason
-        );
-        return ApiResponse.message("User unassigned successfully");
-    }
+  @DeleteMapping("/letters/{letterId}/user")
+  @PreAuthorize("hasAuthority('letter:return:from:user')")
+  public ApiResponse<Void> returnFromUser(
+      @PathVariable Integer letterId,
+      @RequestParam(defaultValue = "") String reason,
+      Authentication authentication) {
+    Jwt jwt = (Jwt) authentication.getPrincipal();
+    letterService.returnFromUser(letterId, jwt.getClaim("userId"), reason);
+    return ApiResponse.message("User unassigned successfully");
+  }
 
-    @DeleteMapping("/letters/{letterId}/division")
-    @PreAuthorize("hasAuthority('letter:return:from:division')")
-    public ApiResponse<Void> returnFromDivision(
-            @PathVariable Integer letterId,
-            @RequestBody ReturnRequestDto dto,
-            Authentication authentication) {
-        Jwt jwt = (Jwt) authentication.getPrincipal();
-        letterService.returnFromDivision(letterId, jwt.getClaim("divisionId"), dto);
-        return ApiResponse.message("Letter returned from division successfully");
-    }
+  @DeleteMapping("/letters/{letterId}/division")
+  @PreAuthorize("hasAuthority('letter:return:from:division')")
+  public ApiResponse<Void> returnFromDivision(
+      @PathVariable Integer letterId,
+      @RequestBody ReturnRequestDto dto,
+      Authentication authentication) {
+    Jwt jwt = (Jwt) authentication.getPrincipal();
+    letterService.returnFromDivision(letterId, jwt.getClaim("divisionId"), dto);
+    return ApiResponse.message("Letter returned from division successfully");
+  }
 
   @PatchMapping(path = "/letters/{letterId}/user", params = "action=accept")
   public ApiResponse<Void> acceptLetter(
@@ -188,5 +188,23 @@ public class LetterController {
 
     letterService.sendReply(id, content, attachments, jwt.getClaim("userId"));
     return ApiResponse.message("Reply sent successfully");
+  }
+
+  @PostMapping(value = "/letters/{id}/attachments", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  @PreAuthorize(
+      "hasAnyAuthority('letter:all:add:attachments', 'letter:unassigned:add:attachments','letter:division:add:attachments',"
+          + "'letter:own:manage')")
+  public ApiResponse<Void> addAttachment(
+      @PathVariable Integer id,
+      @RequestPart(value = "attachments") @NotEmpty(message = "Attachment is required")
+          MultipartFile[] attachments,
+      Authentication authentication) {
+    Jwt jwt = (Jwt) authentication.getPrincipal();
+    Collection<String> authorities =
+        authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+
+    letterService.addAttachment(
+        id, attachments, jwt.getClaim("userId"), jwt.getClaim("divisionId"), authorities);
+    return ApiResponse.message("Attachment added successfully");
   }
 }

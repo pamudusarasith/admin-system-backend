@@ -1,0 +1,22 @@
+meta {
+  name: UPDATE Categories
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{base_url}}/cabinet-paper-categories/1
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "message": "Something went wrongg"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -31,26 +31,33 @@ public class UserService {
   private final EmailService emailService;
 
   @Transactional(readOnly = true)
-  public Page<UserDto> getUsers(String query, Integer divisionId, Integer page, Integer pageSize) {
+  public Page<UserDto> getUsers(String query, Integer divisionId, Integer page, Integer pageSize,
+      Boolean assignableOnly) {
     Pageable pageable = PageRequest.of(page, pageSize);
     Specification<User> spec = null;
 
     if (StringUtils.hasText(query)) {
       String likeQuery = "%" + query.toLowerCase() + "%";
-      spec =
-          (root, criteriaQuery, criteriaBuilder) ->
-              criteriaBuilder.or(
-                  criteriaBuilder.like(criteriaBuilder.lower(root.get("username")), likeQuery),
-                  criteriaBuilder.like(criteriaBuilder.lower(root.get("email")), likeQuery),
-                  criteriaBuilder.like(criteriaBuilder.lower(root.get("fullName")), likeQuery),
-                  criteriaBuilder.like(criteriaBuilder.lower(root.get("phoneNumber")), likeQuery));
+      spec = (root, criteriaQuery, criteriaBuilder) -> criteriaBuilder.or(
+          criteriaBuilder.like(criteriaBuilder.lower(root.get("username")), likeQuery),
+          criteriaBuilder.like(criteriaBuilder.lower(root.get("email")), likeQuery),
+          criteriaBuilder.like(criteriaBuilder.lower(root.get("fullName")), likeQuery),
+          criteriaBuilder.like(criteriaBuilder.lower(root.get("phoneNumber")), likeQuery));
     }
 
     if (divisionId != null) {
-      Specification<User> divisionSpec =
-          (root, criteriaQuery, criteriaBuilder) ->
-              criteriaBuilder.equal(root.get("division").get("id"), divisionId);
+      Specification<User> divisionSpec = (root, criteriaQuery, criteriaBuilder) -> criteriaBuilder
+          .equal(root.get("division").get("id"), divisionId);
       spec = (spec == null) ? divisionSpec : spec.and(divisionSpec);
+    }
+
+    if (assignableOnly != null && assignableOnly) {
+      Specification<User> assignableSpec = (root, criteriaQuery, criteriaBuilder) -> {
+        var roleJoin = root.join("role");
+        var permissionsJoin = roleJoin.join("permissions");
+        return criteriaBuilder.equal(permissionsJoin.get("name"), "letter:own:manage");
+      };
+      spec = (spec == null) ? assignableSpec : spec.and(assignableSpec);
     }
     return userRepository.findAll(spec, pageable).map(userMapper::toUserDto);
   }
@@ -75,18 +82,16 @@ public class UserService {
     user.setAccountSetupRequired(true);
     user.setIsActive(true);
 
-    Role role =
-            roleRepository
-                    .findById(createUserRequest.roleId())
-                    .orElseThrow(
-                            () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Role not found"));
+    Role role = roleRepository
+        .findById(createUserRequest.roleId())
+        .orElseThrow(
+            () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Role not found"));
     user.setRole(role);
 
-    Division division =
-            divisionRepository
-                    .findById(createUserRequest.divisionId())
-                    .orElseThrow(
-                            () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Division not found"));
+    Division division = divisionRepository
+        .findById(createUserRequest.divisionId())
+        .orElseThrow(
+            () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Division not found"));
     user.setDivision(division);
 
     // Save the user to the database first
@@ -113,10 +118,9 @@ public class UserService {
 
   @Transactional
   public void updateUser(Integer id, UserUpdateRequestDto request) {
-    User user =
-        userRepository
-            .findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+    User user = userRepository
+        .findById(id)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
     user.setUsername(request.username());
     user.setEmail(request.email());
@@ -124,18 +128,16 @@ public class UserService {
     user.setPhoneNumber(request.phoneNumber());
     user.setIsActive(request.isActive());
 
-    Role role =
-        roleRepository
-            .findByName(request.role())
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Role not found"));
+    Role role = roleRepository
+        .findByName(request.role())
+        .orElseThrow(
+            () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Role not found"));
     user.setRole(role);
 
-    Division division =
-        divisionRepository
-            .findByName(request.division())
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Division not found"));
+    Division division = divisionRepository
+        .findByName(request.division())
+        .orElseThrow(
+            () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Division not found"));
     user.setDivision(division);
 
     userRepository.save(user);
@@ -157,10 +159,9 @@ public class UserService {
 
   @Transactional
   public void updateProfile(Integer userId, UserProfileUpdateRequestDto request) {
-    User user =
-        userRepository
-            .findById(userId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+    User user = userRepository
+        .findById(userId)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
     user.setFullName(request.fullName());
     user.setEmail(request.email());
@@ -171,10 +172,9 @@ public class UserService {
 
   @Transactional
   public void accountSetup(Integer userId, AccountSetupRequestDto request) {
-    User user =
-        userRepository
-            .findById(userId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+    User user = userRepository
+        .findById(userId)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
     if (!passwordEncoder.matches(request.oldPassword(), user.getPassword())) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Old password is incorrect");

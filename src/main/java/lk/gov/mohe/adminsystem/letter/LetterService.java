@@ -447,6 +447,7 @@ public class LetterService {
             switch (parent.getType()) {
               case ParentTypeEnum.LETTER -> "letters";
               case ParentTypeEnum.LETTER_EVENT -> "events";
+              case ParentTypeEnum.CABINET_PAPER -> "cabinet-papers";
             };
         String objectName = storageService.upload(folder, file);
         attachment.setFilePath(objectName);

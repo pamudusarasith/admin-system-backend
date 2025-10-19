@@ -1,19 +1,17 @@
 package lk.gov.mohe.adminsystem.cabinetpaper;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import java.util.List;
-import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class CabinetPaperCategoryService {
-
-    @Autowired
     private CabinetPaperCategoryRepository repository;
 
     public Page<CabinetPaperCategory> getAllCategories(String query, Integer page, Integer pageSize) {

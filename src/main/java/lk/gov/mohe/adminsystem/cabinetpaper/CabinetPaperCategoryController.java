@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class CabinetPaperCategoryController {
 
-    private final CabinetPaperCategoryService service;
+  private final CabinetPaperCategoryService service;
 
     @GetMapping("/cabinet-paper-categories")
     @PreAuthorize("hasAnyAuthority('cabinet_paper_category:read')")

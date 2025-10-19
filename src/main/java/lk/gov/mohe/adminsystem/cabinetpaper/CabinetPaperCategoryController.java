@@ -15,6 +15,7 @@ public class CabinetPaperCategoryController {
     private final CabinetPaperCategoryService service;
 
     @GetMapping("/cabinet-paper-categories")
+    @PreAuthorize("hasAnyAuthority('cabinet-paper-category:read')")
     public ApiResponse<List<CabinetPaperCategory>> getAllCategories(
             @RequestParam(defaultValue = "") String query,
             @RequestParam(defaultValue = "0") Integer page,
@@ -24,12 +25,14 @@ public class CabinetPaperCategoryController {
     }
 
     @PostMapping("/cabinet-paper-categories")
+    @PreAuthorize("hasAuthority('cabinet-paper-category:create')")
     public ApiResponse<Void> createCategory(@Valid @RequestBody CabinetPaperCategory category) {
         service.createCategory(category);
         return ApiResponse.message("Category created successfully");
     }
 
     @PutMapping("/cabinet-paper-categories/{id}")
+    @PreAuthorize("hasAuthority('cabinet-paper-category:update')")
     public ApiResponse<Void> updateCategory(
             @PathVariable Integer id,
             @Valid @RequestBody CabinetPaperCategory categoryDetails) {
@@ -38,6 +41,7 @@ public class CabinetPaperCategoryController {
     }
 
     @DeleteMapping("/cabinet-paper-categories/{id}")
+    @PreAuthorize("hasAuthority('cabinet-paper-category:delete')")
     public ApiResponse<Void> deleteCategory(@PathVariable Integer id) {
         service.deleteCategory(id);
         return ApiResponse.message("Category deleted successfully");

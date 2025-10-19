@@ -562,10 +562,12 @@ public class LetterService {
         }
         Attachment attachment = new Attachment();
         attachment.setFileName(file.getOriginalFilename());
-        String folder = switch (parent.getType()) {
-          case ParentTypeEnum.LETTER -> "letters";
-          case ParentTypeEnum.LETTER_EVENT -> "events";
-        };
+        String folder =
+            switch (parent.getType()) {
+              case ParentTypeEnum.LETTER -> "letters";
+              case ParentTypeEnum.LETTER_EVENT -> "events";
+              case ParentTypeEnum.CABINET_PAPER -> "cabinet-papers";
+            };
         String objectName = storageService.upload(folder, file);
         attachment.setFilePath(objectName);
         attachment.setFileType(file.getContentType());

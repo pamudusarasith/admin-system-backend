@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:latest
+    image: groonga/pgroonga:latest
     env_file:
       - .env
     ports:

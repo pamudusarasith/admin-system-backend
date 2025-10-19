@@ -20,4 +20,7 @@ public class CabinetPaperCategory {
   @NotNull
   @Column(name = "name", nullable = false, length = 100)
   private String name;
+
+  @Column(name = "description")
+  private String description;
 }

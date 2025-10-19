@@ -29,25 +29,18 @@ public class CabinetPaperCategoryController {
         return service.createCategory(category);
     }
 
-    @PutMapping("cabinet-paper-categories/{id}")
+    @PutMapping("/cabinet-paper-categories/{id}")
     public ResponseEntity<CabinetPaperCategory> updateCategory(
             @PathVariable Integer id,
             @Valid @RequestBody CabinetPaperCategory categoryDetails) {
-        try {
             CabinetPaperCategory updatedCategory = service.updateCategory(id, categoryDetails);
             return ResponseEntity.ok(updatedCategory);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
     }
 
     @DeleteMapping("cabinet-paper-categories/{id}")
     public ResponseEntity<?> deleteCategory(@PathVariable Integer id) {
-        try {
             service.deleteCategory(id);
             return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            return ResponseEntity.notFound().build();
-        }
+
     }
 }

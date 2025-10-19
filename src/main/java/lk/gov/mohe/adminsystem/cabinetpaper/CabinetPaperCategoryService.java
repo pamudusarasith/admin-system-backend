@@ -1,7 +1,9 @@
 package lk.gov.mohe.adminsystem.cabinetpaper;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,18 +22,45 @@ public class CabinetPaperCategoryService {
     }
 
     public CabinetPaperCategory createCategory(CabinetPaperCategory category) {
-        return repository.save(category);
+        // Check if category with same name already exists
+        if (repository.existsByName(category.getName())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Category with name '" + category.getName() + "' already exists");
+        }
+
+        try {
+            return repository.save(category);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to create category", e);
+        }
     }
 
     public CabinetPaperCategory updateCategory(Integer id, CabinetPaperCategory categoryDetails) {
         CabinetPaperCategory category = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found with id: " + id));
 
-        category.setName(categoryDetails.getName());
-        return repository.save(category);
+        // Check if another category with same name exists (excluding current category)
+        Optional<CabinetPaperCategory> existingCategory = repository.findByName(categoryDetails.getName());
+        if (existingCategory.isPresent() && !existingCategory.get().getId().equals(id)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Category with name '" + categoryDetails.getName() + "' already exists");
+        }
+
+        try {
+            category.setName(categoryDetails.getName());
+            return repository.save(category);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to update category", e);
+        }
     }
 
     public void deleteCategory(Integer id) {
-        repository.deleteById(id);
+        if (!repository.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found with id: " + id);
+        }
+
+        try {
+            repository.deleteById(id);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Failed to delete category", e);
+        }
     }
 }

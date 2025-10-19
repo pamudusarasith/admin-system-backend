@@ -1,6 +1,9 @@
 package lk.gov.mohe.adminsystem.cabinetpaper;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -13,8 +16,14 @@ public class CabinetPaperCategoryService {
     @Autowired
     private CabinetPaperCategoryRepository repository;
 
-    public List<CabinetPaperCategory> getAllCategories() {
-        return repository.findAll();
+    public Page<CabinetPaperCategory> getAllCategories(String query, Integer page, Integer pageSize) {
+        Pageable pageable = PageRequest.of(page, pageSize);
+
+        if (query == null || query.trim().isEmpty()) {
+            return repository.findAll(pageable);
+        } else {
+            return repository.findByNameContainingIgnoreCase(query, pageable);
+        }
     }
 
     public Optional<CabinetPaperCategory> getCategoryById(Integer id) {

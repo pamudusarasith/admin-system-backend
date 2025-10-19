@@ -1,46 +1,45 @@
 package lk.gov.mohe.adminsystem.cabinetpaper;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import java.util.List;
+import lk.gov.mohe.adminsystem.util.ApiResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
+@RequiredArgsConstructor
 public class CabinetPaperCategoryController {
 
-    @Autowired
-    private CabinetPaperCategoryService service;
+    private final CabinetPaperCategoryService service;
 
     @GetMapping("/cabinet-paper-categories")
-    public List<CabinetPaperCategory> getAllCategories() {
-        return service.getAllCategories();
-    }
-
-    @GetMapping("cabinet-paper-categories/{id}")
-    public ResponseEntity<CabinetPaperCategory> getCategoryById(@PathVariable Integer id) {
-        return service.getCategoryById(id)
-                .map(category -> ResponseEntity.ok().body(category))
-                .orElse(ResponseEntity.notFound().build());
+    public ApiResponse<List<CabinetPaperCategory>> getAllCategories(
+            @RequestParam(defaultValue = "") String query,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer pageSize) {
+        Page<CabinetPaperCategory> categories = service.getAllCategories(query, page, pageSize);
+        return ApiResponse.paged(categories);
     }
 
     @PostMapping("/cabinet-paper-categories")
-    public CabinetPaperCategory createCategory(@Valid @RequestBody CabinetPaperCategory category) {
-        return service.createCategory(category);
+    public ApiResponse<Void> createCategory(@Valid @RequestBody CabinetPaperCategory category) {
+        service.createCategory(category);
+        return ApiResponse.message("Category created successfully");
     }
 
     @PutMapping("/cabinet-paper-categories/{id}")
-    public ResponseEntity<CabinetPaperCategory> updateCategory(
+    public ApiResponse<Void> updateCategory(
             @PathVariable Integer id,
             @Valid @RequestBody CabinetPaperCategory categoryDetails) {
-            CabinetPaperCategory updatedCategory = service.updateCategory(id, categoryDetails);
-            return ResponseEntity.ok(updatedCategory);
+        service.updateCategory(id, categoryDetails);
+        return ApiResponse.message("Category updated successfully");
     }
 
-    @DeleteMapping("cabinet-paper-categories/{id}")
-    public ResponseEntity<?> deleteCategory(@PathVariable Integer id) {
-            service.deleteCategory(id);
-            return ResponseEntity.ok().build();
-
+    @DeleteMapping("/cabinet-paper-categories/{id}")
+    public ApiResponse<Void> deleteCategory(@PathVariable Integer id) {
+        service.deleteCategory(id);
+        return ApiResponse.message("Category deleted successfully");
     }
 }

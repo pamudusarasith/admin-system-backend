@@ -2,7 +2,6 @@ package lk.gov.mohe.adminsystem.letter;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import java.net.URI;
 import java.util.Collection;
 import java.util.List;
@@ -196,7 +195,7 @@ public class LetterController {
           + "'letter:own:manage')")
   public ApiResponse<Void> addAttachment(
       @PathVariable Integer id,
-      @RequestPart(value = "attachments") @NotEmpty(message = "Attachment is required")
+      @RequestPart(value = "attachments",required = false)
           MultipartFile[] attachments,
       Authentication authentication) {
     Jwt jwt = (Jwt) authentication.getPrincipal();

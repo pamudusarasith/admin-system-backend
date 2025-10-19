@@ -1,10 +1,10 @@
 meta {
-  name: CREATE Role
+  name: UPDATE Role
   type: http
-  seq: 1
+  seq: 3
 }
 
-post {
+put {
   url: {{base_url}}/roles
   body: json
   auth: inherit
@@ -12,7 +12,7 @@ post {
 
 body:json {
   {
-    "description": "Test7",
+    "description": "Test-1",
     "name": "Test-7",
     "permissions": ["user:read", "user:create", "letter:create", "letter:update"]
   }

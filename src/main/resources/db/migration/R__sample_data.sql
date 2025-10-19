@@ -23,9 +23,10 @@ VALUES (1, 'User Management', NULL),
        (7, 'Letter Priority', 2),
        (8, 'Letter Attachments', 2),
        (9, 'Letter Completion', 2),
-       (10, 'Letter Notes', 2),
-       (11, 'Division Management', NULL),
-       (12, 'General', 11);
+       (10, 'Letter Reopen', 2),
+       (11, 'Letter Notes', 2),
+       (12, 'Division Management', NULL),
+       (13, 'Role Management', NULL);
 
 -- =================================================================
 -- Insert Permissions
@@ -36,22 +37,23 @@ VALUES ('user:read', 'Read Users', 'Permission to read user information', 1),
        ('user:update', 'Update Users', 'Permission to update existing users', 1),
        ('user:delete', 'Delete Users', 'Permission to delete users', 1),
 
+       ('letter:own:manage', 'Manage Own Letters', 'Permission to manage letters assigned to self', 2),
+
        ('letter:all:read', 'Read All Letters', 'Permission to read every letter', 3),
        ('letter:unassigned:read', 'Read Unassigned Letters', 'Permission to read unassigned letters', 3),
        ('letter:division:read', 'Read Division Letters', 'Permission to read letters in own division', 3),
-       ('letter:own:read', 'Read Own Letters', 'Permission to read letters assigned to self', 3),
 
        ('letter:create', 'Create Letters', 'Permission to create new letters', 4),
 
        ('letter:all:update', 'Update All Letters', 'Permission to update every letter', 5),
        ('letter:unassigned:update', 'Update Unassigned Letters', 'Permission to update unassigned letters', 5),
        ('letter:division:update', 'Update Division Letters', 'Permission to update letters in own division', 5),
-       ('letter:own:update', 'Update Own Letters', 'Permission to update letters assigned to self', 5),
 
        ('letter:assign:division', 'Assign Letters to Divisions', 'Permission to assign letters to divisions', 6),
        ('letter:assign:user', 'Assign Letters to Users', 'Permission to assign letters to specific users', 6),
        ('letter:return:from:division', 'Return Letters from Division', 'Permission to return letters from own division',
         6),
+       ('letter:return:from:user', 'Return Letters from User', 'Permission to return letters from specific users', 6),
 
        ('letter:all:update:priority', 'Set Priority for All Letters', 'Permission to change priority on every letter',
         7),
@@ -59,8 +61,6 @@ VALUES ('user:read', 'Read Users', 'Permission to read user information', 1),
         'Permission to change priority on unassigned letters', 7),
        ('letter:division:update:priority', 'Set Priority for Division Letters',
         'Permission to change priority on letters in own division', 7),
-       ('letter:own:update:priority', 'Set Priority for Own Letters',
-        'Permission to change priority on letters assigned to self', 7),
 
        ('letter:all:add:attachments', 'Add Attachments to All Letters', 'Permission to add attachments to every letter',
         8),
@@ -68,28 +68,32 @@ VALUES ('user:read', 'Read Users', 'Permission to read user information', 1),
         'Permission to add attachments to unassigned letters', 8),
        ('letter:division:add:attachments', 'Add Attachments to Division Letters',
         'Permission to add attachments to letters in own division', 8),
-       ('letter:own:add:attachments', 'Add Attachments to Own Letters',
-        'Permission to add attachments to letters assigned to self', 8),
 
        ('letter:all:markcomplete', 'Complete All Letters', 'Permission to mark every letter as complete', 9),
        ('letter:unassigned:markcomplete', 'Complete Unassigned Letters',
         'Permission to mark unassigned letters as complete', 9),
        ('letter:division:markcomplete', 'Complete Division Letters',
         'Permission to mark letters in own division as complete', 9),
-       ('letter:own:markcomplete', 'Complete Own Letters', 'Permission to mark letters assigned to self as complete',
-        9),
 
-       ('letter:all:add:note', 'Add Notes to All Letters', 'Permission to add notes to every letter', 10),
+       ('letter:all:reopen', 'Reopen All Letters', 'Permission to reopen every letter', 10),
+       ('letter:unassigned:reopen', 'Reopen Unassigned Letters', 'Permission to reopen unassigned letters', 10),
+       ('letter:division:reopen', 'Reopen Division Letters', 'Permission to reopen letters in own division', 10),
+
+       ('letter:all:add:note', 'Add Notes to All Letters', 'Permission to add notes to every letter', 11),
        ('letter:unassigned:add:note', 'Add Notes to Unassigned Letters',
-        'Permission to add notes to unassigned letters', 10),
+        'Permission to add notes to unassigned letters', 11),
        ('letter:division:add:note', 'Add Notes to Division Letters',
-        'Permission to add notes to letters in own division', 10),
-       ('letter:own:add:note', 'Add Notes to Own Letters', 'Permission to add notes to letters assigned to self', 10),
+        'Permission to add notes to letters in own division', 11),
 
        ('division:read', 'Read Divisions', 'Permission to read division information', 12),
        ('division:create', 'Create Divisions', 'Permission to create new divisions', 12),
        ('division:update', 'Update Divisions', 'Permission to update existing divisions', 12),
-       ('division:delete', 'Delete Divisions', 'Permission to delete divisions', 12);
+       ('division:delete', 'Delete Divisions', 'Permission to delete divisions', 12),
+
+       ('role:read', 'Read Roles', 'Permission to read role information', 13),
+       ('role:create', 'Create Roles', 'Permission to create new roles', 13),
+       ('role:update', 'Update Roles', 'Permission to update existing roles', 13),
+       ('role:delete', 'Delete Roles', 'Permission to delete roles', 13);
 
 -- =================================================================
 -- Insert Roles

@@ -1,9 +1,13 @@
 package lk.gov.mohe.adminsystem.role;
 
 import java.util.List;
+import lombok.Data;
 
-public record RoleDto(
-    Integer id, String name, String description, List<PermissionInfo> permissions, long userCount) {
-  public record PermissionInfo(
-      String mainCategory, String subCategory, String label, String description) {}
+@Data
+public class RoleDto {
+  private Integer id;
+  private String name;
+  private String description;
+  private List<String> permissions;
+  private long userCount;
 }

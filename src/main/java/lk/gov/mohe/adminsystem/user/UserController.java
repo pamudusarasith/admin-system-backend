@@ -24,8 +24,9 @@ public class UserController {
       @RequestParam(defaultValue = "") String query,
       @RequestParam(required = false) Integer divisionId,
       @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "10") int pageSize) {
-    return ApiResponse.paged(userService.getUsers(query, divisionId, page, pageSize));
+      @RequestParam(defaultValue = "10") int pageSize,
+      @RequestParam(required = false) Boolean assignableOnly) {
+    return ApiResponse.paged(userService.getUsers(query, divisionId, page, pageSize, assignableOnly));
   }
 
   @PostMapping("/users")
@@ -64,5 +65,13 @@ public class UserController {
     Integer userId = jwt.getClaim("userId");
     userService.updateProfile(userId, request);
     return ApiResponse.of(Map.of("message", "Profile updated successfully"));
+  }
+
+  @PostMapping("/account-setup")
+  public ApiResponse<Void> accountSetup(
+      @AuthenticationPrincipal Jwt jwt, @Valid @RequestBody AccountSetupRequestDto request) {
+    Integer userId = jwt.getClaim("userId");
+    userService.accountSetup(userId, request);
+    return ApiResponse.message("Account setup completed successfully");
   }
 }

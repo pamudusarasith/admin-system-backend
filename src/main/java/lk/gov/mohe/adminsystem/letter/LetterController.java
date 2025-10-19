@@ -177,4 +177,16 @@ public class LetterController {
     letterService.letterReOpen(id, jwt.getClaim("userId"), jwt.getClaim("divisionId"), authorities);
     return ApiResponse.message("Letter reopened successfully");
   }
+
+  @PostMapping(value = "/letters/{id}/reply", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  public ApiResponse<Void> sendReply(
+      @PathVariable Integer id,
+      @RequestPart("content") @NotBlank(message = "Content is required") String content,
+      @RequestPart(value = "attachments", required = false) MultipartFile[] attachments,
+      Authentication authentication) {
+    Jwt jwt = (Jwt) authentication.getPrincipal();
+
+    letterService.sendReply(id, content, attachments, jwt.getClaim("userId"));
+    return ApiResponse.message("Reply sent successfully");
+  }
 }

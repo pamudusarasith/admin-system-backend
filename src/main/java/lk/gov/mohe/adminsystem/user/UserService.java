@@ -1,7 +1,10 @@
 package lk.gov.mohe.adminsystem.user;
 
+import java.util.HashMap;
+import java.util.Map;
 import lk.gov.mohe.adminsystem.division.Division;
 import lk.gov.mohe.adminsystem.division.DivisionRepository;
+import lk.gov.mohe.adminsystem.notification.EmailService;
 import lk.gov.mohe.adminsystem.role.Role;
 import lk.gov.mohe.adminsystem.role.RoleRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +28,7 @@ public class UserService {
   private final PasswordEncoder passwordEncoder;
   private final DivisionRepository divisionRepository;
   private final UserMapper userMapper;
+  private final EmailService emailService;
 
   @Transactional(readOnly = true)
   public Page<UserDto> getUsers(String query, Integer divisionId, Integer page, Integer pageSize,
@@ -67,11 +71,14 @@ public class UserService {
       throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already exists");
     }
 
+    // Store the plain password to send in the email
+    String defaultPassword = "123";
+
     User user = new User();
     user.setUsername(createUserRequest.username());
-    user.setPassword(passwordEncoder.encode("123")); // Default password
+    user.setPassword(passwordEncoder.encode(defaultPassword)); // Encode it for the database
     user.setEmail(createUserRequest.email());
-    user.setFullName("New User");
+    user.setFullName("New User"); // The template will use this name
     user.setAccountSetupRequired(true);
     user.setIsActive(true);
 
@@ -87,7 +94,26 @@ public class UserService {
             () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Division not found"));
     user.setDivision(division);
 
-    return userRepository.save(user);
+    // Save the user to the database first
+    User savedUser = userRepository.save(user);
+
+
+    // Prepare the variables for the email template
+    Map<String, Object> emailModel = new HashMap<>();
+    emailModel.put("fullName", savedUser.getFullName());
+    emailModel.put("username", savedUser.getUsername());
+    emailModel.put("password", defaultPassword); // Send the plain password to the user
+
+    // Call the email service
+    emailService.sendEmailWithTemplate(
+            savedUser.getEmail(),
+            "Welcome to the Admin System!",
+            "email/welcome-email", // Path to the template: resources/templates/email/welcome-email.html
+            emailModel
+    );
+
+
+    return savedUser;
   }
 
   @Transactional

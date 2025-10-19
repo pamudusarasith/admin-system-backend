@@ -9,11 +9,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import lk.gov.mohe.adminsystem.notification.NotificationDto;
+import lk.gov.mohe.adminsystem.notification.NotificationService;
+import lk.gov.mohe.adminsystem.user.User;
+import lk.gov.mohe.adminsystem.user.UserRepository;
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class DivisionService {
   private final DivisionRepository divisionRepository;
   private final DivisionMapper divisionMapper;
+
+  private final UserRepository userRepository;
+  private final NotificationService notificationService;
 
   @Transactional(readOnly = true)
   public Page<DivisionDto> getDivisions(String query, Integer page, Integer pageSize) {
@@ -59,6 +68,20 @@ public class DivisionService {
 
     divisionMapper.updateDivisionFromDto(dto, existingDivision);
     divisionRepository.save(existingDivision);
+
+    List<User> usersInDivision = userRepository.findByDivisionId(existingDivision.getId());
+
+    if (!usersInDivision.isEmpty()) {
+      NotificationDto notification =
+              new NotificationDto(
+                      "Division Details Updated",
+                      "Details for your division, '" + existingDivision.getName() + "', have been updated.",
+                      "/profile"); // Link to a relevant page
+
+      for (User user : usersInDivision) {
+        notificationService.sendNotification(user.getId(), notification);
+      }
+    }
   }
 
   @Transactional

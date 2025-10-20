@@ -16,4 +16,19 @@ public record EventDetailsDto(
     List<AttachmentDto> attachments,
     DivisionDto division,
     UserDto user,
-    String reason) {}
+    String reason,
+    String reference,
+    String senderDetailsName,
+    String senderDetailsAddress,
+    String senderDetailsEmail,
+    String senderDetailsPhoneNumber,
+    String receiverDetailsName,
+    String receiverDetailsDesignation,
+    String receiverDetailsDivisionName,
+    String sentDate,
+    String receivedDate,
+    ModeOfArrivalEnum modeOfArrival,
+    String subject,
+    String updatedContent,
+    PriorityEnum updatedPriority
+) {}

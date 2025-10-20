@@ -250,9 +250,82 @@ public class LetterService {
           HttpStatus.FORBIDDEN, "You do not have permission to update this letter");
     }
 
-    letterMapper.updateEntityFromCreateOrUpdateLetterRequestDto(request, letter);
+    // Track changed fields
+    Map<String, Object> changedDetails = new HashMap<>();
+    if (!Objects.equals(letter.getReference(), request.reference())) {
+      changedDetails.put("reference", request.reference());
+    }
 
+    // Compare senderDetails fields individually
+    Map<String, Object> oldSender = letter.getSenderDetails();
+    SenderDetailsDto newSender = request.senderDetails();
+    if (oldSender != null && newSender != null) {
+      if (!Objects.equals(oldSender.get("name"), newSender.name())) {
+        changedDetails.put("senderDetails.name", newSender.name());
+      }
+      if (!Objects.equals(oldSender.get("address"), newSender.address())) {
+        changedDetails.put("senderDetails.address", newSender.address());
+      }
+      if (!Objects.equals(oldSender.get("email"), newSender.email())) {
+        changedDetails.put("senderDetails.email", newSender.email());
+      }
+      if (!Objects.equals(oldSender.get("phone_number"), newSender.phoneNumber())) {
+        changedDetails.put("senderDetails.phoneNumber", newSender.phoneNumber());
+      }
+    } else if (oldSender == null && newSender != null) {
+      // All fields are new
+      if (newSender.name() != null) changedDetails.put("senderDetails.name", newSender.name());
+      if (newSender.address() != null) changedDetails.put("senderDetails.address", newSender.address());
+      if (newSender.email() != null) changedDetails.put("senderDetails.email", newSender.email());
+      if (newSender.phoneNumber() != null) changedDetails.put("senderDetails.phoneNumber", newSender.phoneNumber());
+    }
+
+    // Compare receiverDetails fields individually
+    Map<String, Object> oldReceiver = letter.getReceiverDetails();
+    ReceiverDetailsDto newReceiver = request.receiverDetails();
+    if (oldReceiver != null && newReceiver != null) {
+      if (!Objects.equals(oldReceiver.get("name"), newReceiver.name())) {
+        changedDetails.put("receiverDetails.name", newReceiver.name());
+      }
+      if (!Objects.equals(oldReceiver.get("designation"), newReceiver.designation())) {
+        changedDetails.put("receiverDetails.designation", newReceiver.designation());
+      }
+      if (!Objects.equals(oldReceiver.get("division_name"), newReceiver.divisionName())) {
+        changedDetails.put("receiverDetails.divisionName", newReceiver.divisionName());
+      }
+    } else if (oldReceiver == null && newReceiver != null) {
+      // All fields are new
+      if (newReceiver.name() != null) changedDetails.put("receiverDetails.name", newReceiver.name());
+      if (newReceiver.designation() != null) changedDetails.put("receiverDetails.designation", newReceiver.designation());
+      if (newReceiver.divisionName() != null) changedDetails.put("receiverDetails.divisionName", newReceiver.divisionName());
+    }
+
+    if (letter.getSentDate() == null || !letter.getSentDate().toString().equals(request.sentDate())) {
+      changedDetails.put("sentDate", request.sentDate());
+    }
+    if (letter.getReceivedDate() == null || !letter.getReceivedDate().toString().equals(request.receivedDate())) {
+      changedDetails.put("receivedDate", request.receivedDate());
+    }
+    if (!Objects.equals(letter.getModeOfArrival(), request.modeOfArrival())) {
+      changedDetails.put("modeOfArrival", request.modeOfArrival());
+    }
+    if (!Objects.equals(letter.getSubject(), request.subject())) {
+      changedDetails.put("subject", request.subject());
+    }
+    if (!Objects.equals(letter.getContent(), request.content())) {
+      changedDetails.put("content", request.content());
+    }
+    if (!Objects.equals(letter.getPriority(), request.priority())) {
+      changedDetails.put("priority", request.priority());
+    }
+
+    letterMapper.updateEntityFromCreateOrUpdateLetterRequestDto(request, letter);
     letterRepository.save(letter);
+
+    // Only create event if there are changes
+    if (!changedDetails.isEmpty()) {
+      createLetterEvent(letter, EventTypeEnum.UPDATE_DETAILS, changedDetails);
+    }
   }
 
   @Transactional

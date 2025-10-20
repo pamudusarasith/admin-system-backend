@@ -1,3 +1,5 @@
 package lk.gov.mohe.adminsystem.letter;
 
-public record ReceiverDetailsDto(String name, String designation, String divisionName) {}
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public record ReceiverDetailsDto(String name, String designation, @JsonProperty("division_name")String divisionName) {}

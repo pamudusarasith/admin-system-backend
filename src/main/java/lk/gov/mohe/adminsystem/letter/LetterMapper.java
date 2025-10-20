@@ -145,6 +145,37 @@ public abstract class LetterMapper {
 
     String reason = (String) eventDetails.get("reason");
 
+    // Fine-grained senderDetails
+    String senderDetailsName = (String) eventDetails.get("senderDetails.name");
+    String senderDetailsAddress = (String) eventDetails.get("senderDetails.address");
+    String senderDetailsEmail = (String) eventDetails.get("senderDetails.email");
+    String senderDetailsPhoneNumber = (String) eventDetails.get("senderDetails.phoneNumber");
+
+    // Fine-grained receiverDetails
+    String receiverDetailsName = (String) eventDetails.get("receiverDetails.name");
+    String receiverDetailsDesignation = (String) eventDetails.get("receiverDetails.designation");
+    String receiverDetailsDivisionName = (String) eventDetails.get("receiverDetails.divisionName");
+
+    String reference = (String) eventDetails.get("reference");
+    String sentDate = (String) eventDetails.get("sentDate");
+    String receivedDate = (String) eventDetails.get("receivedDate");
+    ModeOfArrivalEnum modeOfArrival = null;
+    Object modeOfArrivalObj = eventDetails.get("modeOfArrival");
+    if (modeOfArrivalObj instanceof String) {
+      modeOfArrival = ModeOfArrivalEnum.valueOf((String) modeOfArrivalObj);
+    } else if (modeOfArrivalObj instanceof ModeOfArrivalEnum) {
+      modeOfArrival = (ModeOfArrivalEnum) modeOfArrivalObj;
+    }
+    String subject = (String) eventDetails.get("subject");
+    String updatedContent = (String) eventDetails.get("content");
+    PriorityEnum updatedPriority = null;
+    Object updatedPriorityObj = eventDetails.get("priority");
+    if (updatedPriorityObj instanceof String) {
+      updatedPriority = PriorityEnum.valueOf((String) updatedPriorityObj);
+    } else if (updatedPriorityObj instanceof PriorityEnum) {
+      updatedPriority = (PriorityEnum) updatedPriorityObj;
+    }
+
     return new EventDetailsDto(
         newStatus,
         previousStatus,
@@ -154,6 +185,20 @@ public abstract class LetterMapper {
         attachments,
         division,
         user,
-        reason);
+        reason,
+        reference,
+        senderDetailsName,
+        senderDetailsAddress,
+        senderDetailsEmail,
+        senderDetailsPhoneNumber,
+        receiverDetailsName,
+        receiverDetailsDesignation,
+        receiverDetailsDivisionName,
+        sentDate,
+        receivedDate,
+        modeOfArrival,
+        subject,
+        updatedContent,
+        updatedPriority);
   }
 }

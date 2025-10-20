@@ -146,4 +146,17 @@ class DivisionServiceTest {
         verify(divisionRepository, never()).save(any(Division.class));
     }
 
+    @Test
+    void deleteDivision_ShouldDeleteDivision_WhenFound() {
+        // Given: The division to be deleted is found
+        when(divisionRepository.findById(1)).thenReturn(Optional.of(division));
+
+        // When: deleteDivision is called
+        divisionService.deleteDivision(1);
+
+        // Then: The division is deleted
+        verify(divisionRepository, times(1)).findById(1);
+        verify(divisionRepository, times(1)).delete(division);
+    }
+
 }

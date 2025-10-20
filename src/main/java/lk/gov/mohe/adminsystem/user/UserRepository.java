@@ -23,6 +23,8 @@ public interface UserRepository
 
   Integer countByRoleId(Integer roleId);
 
+  long countByIsActive(boolean isActive);
+
   boolean existsByUsername(String username);
 
   boolean existsByEmail(String email);

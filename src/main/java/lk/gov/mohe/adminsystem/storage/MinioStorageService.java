@@ -74,10 +74,7 @@ public class MinioStorageService {
   public void delete(String objectName) {
     try {
       minioClient.removeObject(
-          RemoveObjectArgs.builder()
-              .bucket(bucket)
-              .object(objectName)
-              .build());
+          RemoveObjectArgs.builder().bucket(bucket).object(objectName).build());
       log.info("Successfully deleted object: {}", objectName);
     } catch (Exception e) {
       log.error("Failed to delete object: {}", objectName, e);

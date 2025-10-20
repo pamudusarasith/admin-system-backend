@@ -31,39 +31,60 @@ public class UserService {
   private final EmailService emailService;
 
   @Transactional(readOnly = true)
-  public Page<UserDto> getUsers(
-      String query, Integer divisionId, Integer page, Integer pageSize, Boolean assignableOnly) {
-    Pageable pageable = PageRequest.of(page, pageSize);
+  public Page<UserDto> getUsers(UserSearchParams searchParams) {
+    Pageable pageable = PageRequest.of(searchParams.getPage(), searchParams.getPageSize());
+    Specification<User> spec = buildSearchSpec(searchParams);
+    
+    // Use a specification that matches all if spec is null
+    if (spec == null) {
+      spec = (root, query, cb) -> cb.conjunction(); // Matches all users
+    }
+    
+    Page<User> users = userRepository.findAll(spec, pageable);
+    return users.map(userMapper::toUserDto);
+  }
+
+  private Specification<User> buildSearchSpec(UserSearchParams searchParams) {
+    if (searchParams == null) {
+      return null;
+    }
+
     Specification<User> spec = null;
 
-    if (StringUtils.hasText(query)) {
-      String likeQuery = "%" + query.toLowerCase() + "%";
-      spec =
-          (root, criteriaQuery, criteriaBuilder) ->
-              criteriaBuilder.or(
-                  criteriaBuilder.like(criteriaBuilder.lower(root.get("username")), likeQuery),
-                  criteriaBuilder.like(criteriaBuilder.lower(root.get("email")), likeQuery),
-                  criteriaBuilder.like(criteriaBuilder.lower(root.get("fullName")), likeQuery),
-                  criteriaBuilder.like(criteriaBuilder.lower(root.get("phoneNumber")), likeQuery));
+    // General query search (searches username, email, fullName, phoneNumber)
+    spec = withText(spec, searchParams.getQuery(), UserSpecs::matchesQuery);
+    
+    // Role and division filters
+    spec = withText(spec, searchParams.getRoleName(), UserSpecs::hasRoleNameContaining);
+    spec = withText(spec, searchParams.getDivisionName(), UserSpecs::hasDivisionNameContaining);
+    spec = withValue(spec, searchParams.getDivisionId(), UserSpecs::hasDivisionId);
+    
+    // Assignable users filter (users with letter:own:manage permission)
+    if (Boolean.TRUE.equals(searchParams.getAssignableOnly())) {
+      spec = andSpec(spec, UserSpecs.hasPermission("letter:own:manage"));
     }
 
-    if (divisionId != null) {
-      Specification<User> divisionSpec =
-          (root, criteriaQuery, criteriaBuilder) ->
-              criteriaBuilder.equal(root.get("division").get("id"), divisionId);
-      spec = (spec == null) ? divisionSpec : spec.and(divisionSpec);
-    }
+    return spec;
+  }
 
-    if (assignableOnly != null && assignableOnly) {
-      Specification<User> assignableSpec =
-          (root, criteriaQuery, criteriaBuilder) -> {
-            var roleJoin = root.join("role");
-            var permissionsJoin = roleJoin.join("permissions");
-            return criteriaBuilder.equal(permissionsJoin.get("name"), "letter:own:manage");
-          };
-      spec = (spec == null) ? assignableSpec : spec.and(assignableSpec);
+  private Specification<User> withText(
+      Specification<User> spec, String value, java.util.function.Function<String, Specification<User>> specBuilder) {
+    if (StringUtils.hasText(value)) {
+      return andSpec(spec, specBuilder.apply(value));
     }
-    return userRepository.findAll(spec, pageable).map(userMapper::toUserDto);
+    return spec;
+  }
+
+  private <T> Specification<User> withValue(
+      Specification<User> spec, T value, java.util.function.Function<T, Specification<User>> specBuilder) {
+    if (value != null) {
+      return andSpec(spec, specBuilder.apply(value));
+    }
+    return spec;
+  }
+
+  private Specification<User> andSpec(Specification<User> spec, Specification<User> toAdd) {
+    return (spec == null) ? toAdd : spec.and(toAdd);
   }
 
   @Transactional

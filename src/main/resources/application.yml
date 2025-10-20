@@ -74,6 +74,9 @@ custom:
     allowed-methods: GET, POST, PUT, PATCH, DELETE
     allowed-headers: Content-Type, Authorization, X-XSRF-TOKEN
 
+  frontend:
+    url: ${FRONTEND_URL:http://localhost:3000}
+
   minio:
     endpoint: ${MINIO_ENDPOINT}
     access-key: ${MINIO_ACCESS_KEY}

@@ -55,6 +55,18 @@ public class UserController {
     return ApiResponse.message("User deleted successfully");
   }
 
+  @PostMapping("/users/{id}/reset-password")
+  @PreAuthorize("hasAuthority('user:update')")
+  public ApiResponse<Void> resetUserPassword(@PathVariable Integer id) {
+    // Validate path variable
+    if (id == null || id <= 0) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid user ID");
+    }
+    
+    userService.resetUserPassword(id);
+    return ApiResponse.message("Password reset successfully. New password sent to user's email.");
+  }
+
   @GetMapping("/profile")
   public ApiResponse<UserDto> getProfile(@AuthenticationPrincipal Jwt jwt) {
     Integer userId = jwt.getClaim(USER_ID_CLAIM);

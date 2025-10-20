@@ -15,6 +15,7 @@ import lk.gov.mohe.adminsystem.notification.EmailService;
 import lk.gov.mohe.adminsystem.role.Role;
 import lk.gov.mohe.adminsystem.role.RoleRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -49,6 +50,9 @@ public class UserService {
   private final LetterEventRepository letterEventRepository;
   private final CabinetPaperRepository cabinetPaperRepository;
   private final CabinetDecisionRepository cabinetDecisionRepository;
+
+  @Value("${custom.frontend.url}")
+  private String frontendUrl;
 
   @Transactional(readOnly = true)
   public Page<UserDto> getUsers(UserSearchParams searchParams) {
@@ -149,6 +153,7 @@ public class UserService {
     emailModel.put("fullName", savedUser.getFullName());
     emailModel.put("username", savedUser.getUsername());
     emailModel.put("password", generatedPassword); // Send the plain password to the user
+    emailModel.put("loginUrl", frontendUrl + "/login"); // Add login URL for the button
 
     // Call the email service
     emailService.sendEmailWithTemplate(
@@ -319,6 +324,43 @@ public class UserService {
     user.setAccountSetupRequired(false);
 
     userRepository.save(user);
+  }
+
+  @Transactional
+  public void resetUserPassword(Integer userId) {
+    // Validate userId
+    if (userId == null || userId <= 0) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid user ID");
+    }
+
+    // Find user
+    User user =
+        userRepository
+            .findById(userId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, USER_NOT_FOUND));
+
+    // Generate a new random password
+    String newPassword = generateRandomPassword();
+
+    // Update user password and set account setup required
+    user.setPassword(passwordEncoder.encode(newPassword));
+    user.setAccountSetupRequired(true);
+
+    userRepository.save(user);
+
+    // Prepare the variables for the email template
+    Map<String, Object> emailModel = new HashMap<>();
+    emailModel.put("fullName", user.getFullName());
+    emailModel.put("username", user.getUsername());
+    emailModel.put("password", newPassword); // Send the plain password to the user
+    emailModel.put("loginUrl", frontendUrl + "/login"); // Add login URL for the button
+
+    // Send password reset email
+    emailService.sendEmailWithTemplate(
+        user.getEmail(),
+        "Password Reset - MOHE Admin System",
+        "email/password-reset-email",
+        emailModel);
   }
 
   /**

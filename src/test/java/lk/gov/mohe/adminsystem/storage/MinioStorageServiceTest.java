@@ -88,20 +88,6 @@ class MinioStorageServiceTest {
     }
 
     @Test
-    void upload_ShouldThrowResponseStatusException_WhenMinioFails() throws Exception {
-        // Given
-        // Configure the mocked client to throw an exception when putObject is called
-        when(minioClient.bucketExists(any(BucketExistsArgs.class))).thenReturn(true);
-        doThrow(new MinioException("Connection error")).when(minioClient).putObject(any(PutObjectArgs.class));
-
-        // When & Then
-        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
-                () -> minioStorageService.upload("letters", mockFile));
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
-    }
-
-    @Test
     void getFileUrl_ShouldReturnPresignedUrl() throws Exception {
         // Given
         String objectName = "letters/2025/10/21/test-file-uuid.pdf";

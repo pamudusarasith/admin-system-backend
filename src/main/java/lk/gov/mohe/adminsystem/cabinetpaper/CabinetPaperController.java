@@ -25,6 +25,13 @@ public class CabinetPaperController {
     return ApiResponse.paged(cabinetPapers);
   }
 
+  @GetMapping("/cabinet-papers/{id}")
+  @PreAuthorize("hasAuthority('cabinet:read')")
+  public ApiResponse<CabinetPaperDto> getCabinetPaperById(@PathVariable Integer id) {
+    CabinetPaperDto cabinetPaper = cabinetPaperService.getCabinetPaperById(id);
+    return ApiResponse.of(cabinetPaper);
+  }
+
   @PostMapping(value = "/cabinet-papers", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @PreAuthorize("hasAuthority('cabinet:create')")
   public ResponseEntity<ApiResponse<Void>> createCabinetPaper(

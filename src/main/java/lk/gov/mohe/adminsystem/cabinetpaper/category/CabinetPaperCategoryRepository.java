@@ -10,6 +10,8 @@ public interface CabinetPaperCategoryRepository
 
   boolean existsByName(String name);
 
+  boolean existsByNameAndIdNot(String name, Integer id);
+
   Optional<CabinetPaperCategory> findByName(String name);
 
   Page<CabinetPaperCategory> findByNameContainingIgnoreCase(String name, Pageable pageable);

@@ -14,35 +14,35 @@ public class CabinetPaperCategoryController {
 
   private final CabinetPaperCategoryService service;
 
-    @GetMapping("/cabinet-paper-categories")
-    @PreAuthorize("hasAnyAuthority('cabinet_paper_category:read')")
-    public ApiResponse<List<CabinetPaperCategory>> getAllCategories(
-            @RequestParam(defaultValue = "") String query,
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "10") Integer pageSize) {
-        Page<CabinetPaperCategory> categories = service.getAllCategories(query, page, pageSize);
+  @GetMapping("/cabinet-papers/categories")
+  @PreAuthorize("hasAnyAuthority('cabinet_paper_category:read')")
+  public ApiResponse<List<CabinetPaperCategoryDto>> getAllCategories(
+      @RequestParam(defaultValue = "") String query,
+      @RequestParam(defaultValue = "0") Integer page,
+      @RequestParam(defaultValue = "10") Integer pageSize) {
+    Page<CabinetPaperCategoryDto> categories = service.getAllCategories(query, page, pageSize);
         return ApiResponse.paged(categories);
     }
 
-    @PostMapping("/cabinet-paper-categories")
-    @PreAuthorize("hasAuthority('cabinet_paper_category:create')")
-    public ApiResponse<Void> createCategory(@Valid @RequestBody CabinetPaperCategory category) {
-        service.createCategory(category);
+  @PostMapping("/cabinet-papers/categories")
+  @PreAuthorize("hasAuthority('cabinet_paper_category:create')")
+  public ApiResponse<Void> createCategory(
+      @Valid @RequestBody CreateCabinetPaperCategoryRequestDto request) {
+    service.createCategory(request);
         return ApiResponse.message("Category created successfully");
     }
 
-    @PutMapping("/cabinet-paper-categories/{id}")
-    @PreAuthorize("hasAuthority('cabinet_paper_category:update')")
-    public ApiResponse<Void> updateCategory(
-            @PathVariable Integer id,
-            @Valid @RequestBody CabinetPaperCategory categoryDetails) {
-        service.updateCategory(id, categoryDetails);
+  @PutMapping("/cabinet-papers/categories/{id}")
+  @PreAuthorize("hasAuthority('cabinet_paper_category:update')")
+  public ApiResponse<Void> updateCategory(
+      @PathVariable Integer id, @Valid @RequestBody UpdateCabinetPaperCategoryRequestDto request) {
+    service.updateCategory(id, request);
         return ApiResponse.message("Category updated successfully");
     }
 
-    @DeleteMapping("/cabinet-paper-categories/{id}")
-    @PreAuthorize("hasAuthority('cabinet_paper_category:delete')")
-    public ApiResponse<Void> deleteCategory(@PathVariable Integer id) {
+  @DeleteMapping("/cabinet-papers/categories/{id}")
+  @PreAuthorize("hasAuthority('cabinet_paper_category:delete')")
+  public ApiResponse<Void> deleteCategory(@PathVariable Integer id) {
         service.deleteCategory(id);
         return ApiResponse.message("Category deleted successfully");
     }

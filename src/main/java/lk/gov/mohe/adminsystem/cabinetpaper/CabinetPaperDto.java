@@ -1,6 +1,8 @@
 package lk.gov.mohe.adminsystem.cabinetpaper;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import java.util.List;
+import lk.gov.mohe.adminsystem.attachment.AttachmentDto;
 import lk.gov.mohe.adminsystem.cabinetpaper.category.CabinetPaperCategoryDto;
 import lk.gov.mohe.adminsystem.user.UserDto;
 
@@ -13,5 +15,7 @@ public record CabinetPaperDto(
     CabinetPaperCategoryDto category,
     CabinetPaperStatusEnum status,
     UserDto submittedByUser,
+    Long noOfAttachments,
+    List<AttachmentDto> attachments,
     String createdAt,
     String updatedAt) {}

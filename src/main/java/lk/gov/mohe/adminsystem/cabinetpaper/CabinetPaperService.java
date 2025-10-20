@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 import lk.gov.mohe.adminsystem.attachment.Attachment;
 import lk.gov.mohe.adminsystem.attachment.AttachmentRepository;
+import lk.gov.mohe.adminsystem.attachment.ParentTypeEnum;
 import lk.gov.mohe.adminsystem.cabinetpaper.category.CabinetPaperCategory;
 import lk.gov.mohe.adminsystem.cabinetpaper.category.CabinetPaperCategoryRepository;
 import lk.gov.mohe.adminsystem.security.CurrentUserProvider;
@@ -38,7 +39,24 @@ public class CabinetPaperService {
   public Page<CabinetPaperDto> getCabinetPapers(Integer page, Integer pageSize) {
     Pageable pageable = PageRequest.of(page, pageSize);
     Page<CabinetPaper> cabinetPapers = cabinetPaperRepository.findAll(pageable);
-    return cabinetPapers.map(cabinetPaperMapper::toDto);
+    return cabinetPapers.map(cabinetPaperMapper::toCabinetPaperDtoMin);
+  }
+
+  @Transactional(readOnly = true)
+  public CabinetPaperDto getCabinetPaperById(Integer id) {
+    CabinetPaper cabinetPaper =
+        cabinetPaperRepository
+            .findById(id)
+            .orElseThrow(
+                () ->
+                    new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Cabinet paper not found with id: " + id));
+
+    List<Attachment> attachments =
+        attachmentRepository.findByParentTypeAndParentId(
+            ParentTypeEnum.CABINET_PAPER, cabinetPaper.getId());
+
+    return cabinetPaperMapper.toCabinetPaperDtoFull(cabinetPaper, attachments);
   }
 
   @Transactional

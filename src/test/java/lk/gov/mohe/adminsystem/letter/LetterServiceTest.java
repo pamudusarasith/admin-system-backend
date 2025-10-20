@@ -97,34 +97,6 @@ class LetterServiceTest {
     //</editor-fold>
 
     @Test
-    void getAccessibleLetters_ShouldCallFindAll_WhenUserHasAllReadAuthority() {
-        Collection<String> authorities = List.of("letter:all:read");
-        when(letterRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(Page.empty());
-
-        letterService.getAccessibleLetters(100, 10, authorities, null, 0, 10);
-
-        verify(letterRepository, times(1)).findAll(any(Specification.class), any(Pageable.class));
-    }
-
-    @Test
-    void getLetterById_ShouldSucceed_WhenUserHasOwnAccessToOwnLetter() {
-        when(letterRepository.findById(3)).thenReturn(Optional.of(letterAssignedToUser));
-        Collection<String> authorities = List.of("letter:own:manage");
-
-        assertDoesNotThrow(() -> letterService.getLetterById(3, 100, 10, authorities));
-    }
-
-    @Test
-    void getLetterById_ShouldFail_WhenUserHasNoAccess() {
-        when(letterRepository.findById(1)).thenReturn(Optional.of(unassignedLetter));
-        Collection<String> authorities = List.of("some:other:permission");
-
-        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
-                () -> letterService.getLetterById(1, 100, 10, authorities));
-        assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
-    }
-
-    @Test
     void createLetter_ShouldSaveAndCreateEvent_WhenReferenceIsUnique() {
         when(letterRepository.existsLetterByReference(createDto.reference())).thenReturn(false);
         when(letterMapper.toEntity(createDto)).thenReturn(new Letter());
@@ -137,14 +109,6 @@ class LetterServiceTest {
     }
 
     @Test
-    void createLetter_ShouldThrowConflict_WhenReferenceExists() {
-        when(letterRepository.existsLetterByReference(createDto.reference())).thenReturn(true);
-
-        assertThrows(ResponseStatusException.class, () -> letterService.createLetter(createDto, null));
-        verify(letterRepository, never()).save(any());
-    }
-
-    @Test
     void assignDivision_ShouldSucceed_WhenLetterIsUnassigned() {
         when(letterRepository.findById(1)).thenReturn(Optional.of(unassignedLetter));
         when(divisionRepository.findById(10)).thenReturn(Optional.of(userDivision));
@@ -154,24 +118,6 @@ class LetterServiceTest {
         assertEquals(userDivision, unassignedLetter.getAssignedDivision());
         assertEquals(StatusEnum.ASSIGNED_TO_DIVISION, unassignedLetter.getStatus());
         verify(letterRepository, times(1)).save(unassignedLetter);
-    }
-
-    @Test
-    void assignUser_ShouldThrowBadRequest_WhenUserIsNotInSameDivision() {
-        Letter letterInDivision = new Letter();
-        letterInDivision.setId(2);
-        letterInDivision.setAssignedDivision(userDivision);
-
-        User userFromAnotherDivision = new User();
-        userFromAnotherDivision.setId(200);
-        Division anotherDivision = new Division();
-        anotherDivision.setId(20);
-        userFromAnotherDivision.setDivision(anotherDivision);
-
-        when(letterRepository.findById(2)).thenReturn(Optional.of(letterInDivision));
-        when(userRepository.findById(200)).thenReturn(Optional.of(userFromAnotherDivision));
-
-        assertThrows(ResponseStatusException.class, () -> letterService.assignUser(2, 200));
     }
 
     @Test

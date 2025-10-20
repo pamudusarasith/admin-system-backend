@@ -28,7 +28,8 @@ VALUES (1, 'User Management', NULL),
        (12, 'Division Management', NULL),
        (13, 'Role Management', NULL),
        (14, 'Cabinet Paper Management', NULL),
-       (15, 'Cabinet Paper Category Management', NULL);
+       (15, 'Cabinet Paper Category Management', NULL),
+       (16, 'Cabinet Decision Management', NULL);
 
 -- =================================================================
 -- Insert Permissions
@@ -105,7 +106,12 @@ VALUES ('user:read', 'Read Users', 'Permission to read user information', 1),
        ('cabinet_paper_category:read', 'Read Cabinet Paper Categories', 'Permission to read cabinet paper categories', 15),
        ('cabinet_paper_category:create', 'Create Cabinet Paper Categories', 'Permission to create new cabinet paper categories', 15),
        ('cabinet_paper_category:update', 'Update Cabinet Paper Categories', 'Permission to update existing cabinet paper categories', 15),
-       ('cabinet_paper_category:delete', 'Delete Cabinet Paper Categories', 'Permission to delete cabinet paper categories', 15);
+       ('cabinet_paper_category:delete', 'Delete Cabinet Paper Categories', 'Permission to delete cabinet paper categories', 15),
+
+       ('cabinet_decision:read', 'Read Cabinet Decisions', 'Permission to read cabinet decisions', 16),
+       ('cabinet_decision:create', 'Create Cabinet Decisions', 'Permission to create new cabinet decisions', 16),
+       ('cabinet_decision:update', 'Update Cabinet Decisions', 'Permission to update existing cabinet decisions', 16),
+       ('cabinet_decision:delete', 'Delete Cabinet Decisions', 'Permission to delete cabinet decisions', 16);
 
 
 -- =================================================================

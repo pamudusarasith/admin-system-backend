@@ -1,8 +1,6 @@
 package lk.gov.mohe.adminsystem.user;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
+import org.mapstruct.*;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {

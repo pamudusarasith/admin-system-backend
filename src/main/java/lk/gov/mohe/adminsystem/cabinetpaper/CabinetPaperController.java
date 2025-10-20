@@ -20,8 +20,8 @@ public class CabinetPaperController {
   @GetMapping("/cabinet-papers")
   @PreAuthorize("hasAuthority('cabinet:read')")
   public ApiResponse<List<CabinetPaperDto>> getCabinetPapers(
-      @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int pageSize) {
-    Page<CabinetPaperDto> cabinetPapers = cabinetPaperService.getCabinetPapers(page, pageSize);
+      @ModelAttribute CabinetPaperSearchParams params) {
+    Page<CabinetPaperDto> cabinetPapers = cabinetPaperService.searchCabinetPapers(params);
     return ApiResponse.paged(cabinetPapers);
   }
 

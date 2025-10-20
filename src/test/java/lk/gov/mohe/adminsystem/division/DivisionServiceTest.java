@@ -66,4 +66,18 @@ class DivisionServiceTest {
         verify(divisionMapper, times(1)).toDto(division);
     }
 
+    @Test
+    void createDivision_ShouldSaveDivision_WhenNameIsUnique() {
+        // Given: A division with the same name does not exist
+        when(divisionRepository.existsByNameIgnoreCase(createDto.name())).thenReturn(false);
+        when(divisionMapper.dtoToDivision(createDto)).thenReturn(division);
+
+        // When: createDivision is called
+        divisionService.createDivision(createDto);
+
+        // Then: The new division is saved
+        verify(divisionRepository, times(1)).existsByNameIgnoreCase(createDto.name());
+        verify(divisionMapper, times(1)).dtoToDivision(createDto);
+        verify(divisionRepository, times(1)).save(division);
+    }
 }

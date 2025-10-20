@@ -97,4 +97,21 @@ class DivisionServiceTest {
         verify(divisionRepository, never()).save(any(Division.class));
     }
 
+    @Test
+    void updateDivision_ShouldUpdateDivision_WhenFoundAndNameIsUnique() {
+        // Given: An existing division is found and the new name is unique
+        CreateOrUpdateDivisionRequestDto updateDto = new CreateOrUpdateDivisionRequestDto("Updated Name", "Updated Desc");
+        when(divisionRepository.findById(1)).thenReturn(Optional.of(division));
+        when(divisionRepository.existsByNameIgnoreCase(updateDto.name())).thenReturn(false);
+
+        // When: updateDivision is called
+        divisionService.updateDivision(1, updateDto);
+
+        // Then: The existing division is updated and saved
+        verify(divisionRepository, times(1)).findById(1);
+        verify(divisionRepository, times(1)).existsByNameIgnoreCase(updateDto.name());
+        verify(divisionMapper, times(1)).updateDivisionFromDto(updateDto, division);
+        verify(divisionRepository, times(1)).save(division);
+    }
+
 }

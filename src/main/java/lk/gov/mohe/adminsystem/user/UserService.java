@@ -1,9 +1,16 @@
 package lk.gov.mohe.adminsystem.user;
 
+import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import lk.gov.mohe.adminsystem.cabinetpaper.CabinetPaperRepository;
+import lk.gov.mohe.adminsystem.cabinetpaper.decision.CabinetDecisionRepository;
 import lk.gov.mohe.adminsystem.division.Division;
 import lk.gov.mohe.adminsystem.division.DivisionRepository;
+import lk.gov.mohe.adminsystem.letter.LetterEventRepository;
+import lk.gov.mohe.adminsystem.letter.LetterRepository;
 import lk.gov.mohe.adminsystem.notification.EmailService;
 import lk.gov.mohe.adminsystem.role.Role;
 import lk.gov.mohe.adminsystem.role.RoleRepository;
@@ -23,12 +30,25 @@ import org.springframework.web.server.ResponseStatusException;
 @RequiredArgsConstructor
 public class UserService {
 
+  private static final String USER_NOT_FOUND = "User not found";
+  private static final String UPPERCASE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  private static final String LOWERCASE_CHARS = "abcdefghijklmnopqrstuvwxyz";
+  private static final String DIGIT_CHARS = "0123456789";
+  private static final String SPECIAL_CHARS = "!@#$%^&*";
+  private static final String ALL_CHARS = UPPERCASE_CHARS + LOWERCASE_CHARS + DIGIT_CHARS + SPECIAL_CHARS;
+  private static final int PASSWORD_LENGTH = 12;
+  private static final SecureRandom RANDOM = new SecureRandom();
+  
   private final UserRepository userRepository;
   private final RoleRepository roleRepository;
   private final PasswordEncoder passwordEncoder;
   private final DivisionRepository divisionRepository;
   private final UserMapper userMapper;
   private final EmailService emailService;
+  private final LetterRepository letterRepository;
+  private final LetterEventRepository letterEventRepository;
+  private final CabinetPaperRepository cabinetPaperRepository;
+  private final CabinetDecisionRepository cabinetDecisionRepository;
 
   @Transactional(readOnly = true)
   public Page<UserDto> getUsers(UserSearchParams searchParams) {
@@ -96,12 +116,12 @@ public class UserService {
       throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already exists");
     }
 
-    // Store the plain password to send in the email
-    String defaultPassword = "123";
+    // Generate a random secure password
+    String generatedPassword = generateRandomPassword();
 
     User user = new User();
     user.setUsername(createUserRequest.username());
-    user.setPassword(passwordEncoder.encode(defaultPassword)); // Encode it for the database
+    user.setPassword(passwordEncoder.encode(generatedPassword)); // Encode it for the database
     user.setEmail(createUserRequest.email());
     user.setFullName("New User"); // The template will use this name
     user.setAccountSetupRequired(true);
@@ -128,7 +148,7 @@ public class UserService {
     Map<String, Object> emailModel = new HashMap<>();
     emailModel.put("fullName", savedUser.getFullName());
     emailModel.put("username", savedUser.getUsername());
-    emailModel.put("password", defaultPassword); // Send the plain password to the user
+    emailModel.put("password", generatedPassword); // Send the plain password to the user
 
     // Call the email service
     emailService.sendEmailWithTemplate(
@@ -145,43 +165,114 @@ public class UserService {
     User user =
         userRepository
             .findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, USER_NOT_FOUND));
 
+    // Check if username is being changed and if it conflicts with another user
+    if (!user.getUsername().equals(request.username())
+        && userRepository.existsByUsername(request.username())) {
+      throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already exists");
+    }
+
+    // Check if email is being changed and if it conflicts with another user
+    if (!user.getEmail().equals(request.email())
+        && userRepository.existsByEmail(request.email())) {
+      throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already exists");
+    }
+
+    // Validate and fetch role
+    Role role =
+        roleRepository
+            .findByName(request.role())
+            .orElseThrow(
+                () ->
+                    new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST, "Role not found: " + request.role()));
+
+    // Validate and fetch division
+    Division division =
+        divisionRepository
+            .findByName(request.division())
+            .orElseThrow(
+                () ->
+                    new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST, "Division not found: " + request.division()));
+
+    // Update user fields
     user.setUsername(request.username());
     user.setEmail(request.email());
     user.setFullName(request.fullName());
     user.setPhoneNumber(request.phoneNumber());
     user.setIsActive(request.isActive());
-
-    Role role =
-        roleRepository
-            .findByName(request.role())
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Role not found"));
     user.setRole(role);
-
-    Division division =
-        divisionRepository
-            .findByName(request.division())
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Division not found"));
     user.setDivision(division);
 
     userRepository.save(user);
   }
 
-  public void deleteUser(Integer id) {
-    if (!userRepository.existsById(id)) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+  @Transactional
+  public void deleteUser(Integer id, Integer currentUserId) {
+    // Validate id
+    if (id == null || id <= 0) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid user ID");
     }
-    userRepository.deleteById(id);
+
+    // Prevent self-deletion
+    if (id.equals(currentUserId)) {
+      throw new ResponseStatusException(
+          HttpStatus.FORBIDDEN, "Cannot delete your own account");
+    }
+
+    // Find user
+    User user =
+        userRepository
+            .findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, USER_NOT_FOUND));
+
+    // Check for user references in the system
+    List<String> references = new ArrayList<>();
+    
+    // Check for assigned letters
+    long assignedLettersCount = letterRepository.countActiveLettersByUserId(id);
+    if (assignedLettersCount > 0) {
+      references.add(assignedLettersCount + " assigned letter(s)");
+    }
+    
+    // Check for letter events (actions performed by the user)
+    long letterEventsCount = letterEventRepository.countByUserId(id);
+    if (letterEventsCount > 0) {
+      references.add(letterEventsCount + " letter event(s)");
+    }
+    
+    // Check for submitted cabinet papers
+    long submittedPapersCount = cabinetPaperRepository.countBySubmittedByUserId(id);
+    if (submittedPapersCount > 0) {
+      references.add(submittedPapersCount + " submitted cabinet paper(s)");
+    }
+    
+    // Check for recorded cabinet decisions
+    long recordedDecisionsCount = cabinetDecisionRepository.countByRecordedByUserId(id);
+    if (recordedDecisionsCount > 0) {
+      references.add(recordedDecisionsCount + " recorded cabinet decision(s)");
+    }
+    
+    // If there are references, prevent deletion
+    if (!references.isEmpty()) {
+      String message = String.format(
+          "Cannot delete user: This user has %s in the system. " +
+          "Please reassign or remove these references before deleting the user.",
+          String.join(", ", references));
+      throw new ResponseStatusException(HttpStatus.CONFLICT, message);
+    }
+
+    // Delete the user
+    userRepository.delete(user);
   }
 
   public UserDto getProfile(Integer userId) {
     return userRepository
         .findById(userId)
         .map(userMapper::toUserDto)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, USER_NOT_FOUND));
   }
 
   @Transactional
@@ -189,8 +280,15 @@ public class UserService {
     User user =
         userRepository
             .findById(userId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, USER_NOT_FOUND));
 
+    // Check if email is being changed and if it conflicts with another user
+    if (!user.getEmail().equals(request.email()) 
+        && userRepository.existsByEmail(request.email())) {
+      throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already exists");
+    }
+
+    // Update user fields
     user.setFullName(request.fullName());
     user.setEmail(request.email());
     user.setPhoneNumber(request.phoneNumber());
@@ -203,7 +301,7 @@ public class UserService {
     User user =
         userRepository
             .findById(userId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, USER_NOT_FOUND));
 
     if (!passwordEncoder.matches(request.oldPassword(), user.getPassword())) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Old password is incorrect");
@@ -221,5 +319,50 @@ public class UserService {
     user.setAccountSetupRequired(false);
 
     userRepository.save(user);
+  }
+
+  /**
+   * Generates a secure random password with the following criteria:
+   * - Length: 12 characters
+   * - Contains at least one uppercase letter
+   * - Contains at least one lowercase letter
+   * - Contains at least one digit
+   * - Contains at least one special character (!@#$%^&*)
+   * 
+   * @return A randomly generated secure password
+   */
+  private String generateRandomPassword() {
+    StringBuilder password = new StringBuilder(PASSWORD_LENGTH);
+    
+    // Ensure at least one character from each category
+    password.append(UPPERCASE_CHARS.charAt(RANDOM.nextInt(UPPERCASE_CHARS.length())));
+    password.append(LOWERCASE_CHARS.charAt(RANDOM.nextInt(LOWERCASE_CHARS.length())));
+    password.append(DIGIT_CHARS.charAt(RANDOM.nextInt(DIGIT_CHARS.length())));
+    password.append(SPECIAL_CHARS.charAt(RANDOM.nextInt(SPECIAL_CHARS.length())));
+    
+    // Fill the remaining characters randomly from all character sets
+    for (int i = 4; i < PASSWORD_LENGTH; i++) {
+      password.append(ALL_CHARS.charAt(RANDOM.nextInt(ALL_CHARS.length())));
+    }
+    
+    // Shuffle the password to avoid predictable patterns
+    return shuffleString(password.toString());
+  }
+
+  /**
+   * Shuffles the characters in a string using Fisher-Yates algorithm
+   * 
+   * @param input The string to shuffle
+   * @return A new string with characters shuffled randomly
+   */
+  private String shuffleString(String input) {
+    char[] characters = input.toCharArray();
+    for (int i = characters.length - 1; i > 0; i--) {
+      int j = RANDOM.nextInt(i + 1);
+      char temp = characters[i];
+      characters[i] = characters[j];
+      characters[j] = temp;
+    }
+    return new String(characters);
   }
 }

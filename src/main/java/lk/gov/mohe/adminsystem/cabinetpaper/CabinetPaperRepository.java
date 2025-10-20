@@ -19,4 +19,7 @@ public interface CabinetPaperRepository
       "SELECT COALESCE(c.name, 'Uncategorized'), COUNT(cp) FROM CabinetPaper cp LEFT JOIN"
           + " cp.category c GROUP BY c.name")
   List<Object[]> countByCategory();
+
+  @Query("SELECT COUNT(cp) FROM CabinetPaper cp WHERE cp.submittedByUser.id = :userId")
+  long countBySubmittedByUserId(Integer userId);
 }

@@ -7,4 +7,6 @@ public interface CabinetDecisionRepository extends JpaRepository<CabinetDecision
   Optional<CabinetDecision> findByPaperId(Integer paperId);
 
   boolean existsByPaperId(Integer paperId);
+
+  long countByRecordedByUserId(Integer userId);
 }

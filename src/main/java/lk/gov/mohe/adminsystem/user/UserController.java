@@ -6,16 +6,19 @@ import java.util.List;
 import java.util.Map;
 import lk.gov.mohe.adminsystem.util.ApiResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequiredArgsConstructor
 public class UserController {
 
+  private static final String USER_ID_CLAIM = "userId";
   private final UserService userService;
 
   @GetMapping("/users")
@@ -43,21 +46,26 @@ public class UserController {
 
   @DeleteMapping("/users/{id}")
   @PreAuthorize("hasAuthority('user:delete')")
-  public ApiResponse<Void> deleteUser(@PathVariable Integer id) {
-    userService.deleteUser(id);
+  public ApiResponse<Void> deleteUser(
+      @PathVariable Integer id, @AuthenticationPrincipal Jwt jwt) {
+    // Get current user ID to prevent self-deletion
+    Integer currentUserId = jwt.getClaim(USER_ID_CLAIM);
+    
+    userService.deleteUser(id, currentUserId);
     return ApiResponse.message("User deleted successfully");
   }
 
   @GetMapping("/profile")
   public ApiResponse<UserDto> getProfile(@AuthenticationPrincipal Jwt jwt) {
-    Integer userId = jwt.getClaim("userId");
+    Integer userId = jwt.getClaim(USER_ID_CLAIM);
     return ApiResponse.of(userService.getProfile(userId));
   }
 
   @PutMapping("/profile")
   public ApiResponse<Map<String, String>> updateProfile(
       @AuthenticationPrincipal Jwt jwt, @Valid @RequestBody UserProfileUpdateRequestDto request) {
-    Integer userId = jwt.getClaim("userId");
+    Integer userId = jwt.getClaim(USER_ID_CLAIM);
+
     userService.updateProfile(userId, request);
     return ApiResponse.of(Map.of("message", "Profile updated successfully"));
   }
@@ -65,7 +73,7 @@ public class UserController {
   @PostMapping("/account-setup")
   public ApiResponse<Void> accountSetup(
       @AuthenticationPrincipal Jwt jwt, @Valid @RequestBody AccountSetupRequestDto request) {
-    Integer userId = jwt.getClaim("userId");
+    Integer userId = jwt.getClaim(USER_ID_CLAIM);
     userService.accountSetup(userId, request);
     return ApiResponse.message("Account setup completed successfully");
   }

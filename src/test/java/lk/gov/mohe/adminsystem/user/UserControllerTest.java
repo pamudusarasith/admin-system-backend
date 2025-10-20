@@ -107,4 +107,5 @@ public class UserControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(content().string("User not found"));
     }
+
 }

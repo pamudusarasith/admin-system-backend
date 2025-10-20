@@ -204,4 +204,5 @@ class LetterServiceTest {
                 letterService.updateLetter(1, request, 1, 1, List.of())
         );
     }
+
 }

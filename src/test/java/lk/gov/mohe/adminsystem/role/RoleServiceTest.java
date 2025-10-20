@@ -51,4 +51,5 @@ public class RoleServiceTest {
         ApiResponse<Void> response = roleService.deleteRole(1);
         assertTrue(response.errors() != null && !response.errors().isEmpty());
     }
+
 }

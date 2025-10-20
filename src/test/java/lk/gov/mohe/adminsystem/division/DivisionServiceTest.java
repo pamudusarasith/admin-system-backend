@@ -114,4 +114,18 @@ class DivisionServiceTest {
         verify(divisionRepository, times(1)).save(division);
     }
 
+    @Test
+    void updateDivision_ShouldThrowNotFoundException_WhenDivisionDoesNotExist() {
+        // Given: No division exists for the given ID
+        when(divisionRepository.findById(1)).thenReturn(Optional.empty());
+
+        // When & Then: updateDivision is called and it throws a ResponseStatusException
+        assertThrows(ResponseStatusException.class, () -> {
+            divisionService.updateDivision(1, createDto);
+        });
+        verify(divisionRepository, times(1)).findById(1);
+        // Corrected line:
+        verify(divisionRepository, never()).save(any(Division.class));
+    }
+
 }

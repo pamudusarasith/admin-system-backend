@@ -31,7 +31,7 @@ import org.springframework.web.server.ResponseStatusException;
 @RequiredArgsConstructor
 public class CabinetPaperService {
   private static final String CABINET_PAPER_NOT_FOUND = "Cabinet paper not found with id: ";
-  
+
   private final CabinetPaperRepository cabinetPaperRepository;
   private final CabinetPaperCategoryRepository categoryRepository;
   private final AttachmentRepository attachmentRepository;
@@ -99,9 +99,7 @@ public class CabinetPaperService {
   }
 
   private <T> Specification<CabinetPaper> withValue(
-      Specification<CabinetPaper> base,
-      T value,
-      Function<T, Specification<CabinetPaper>> mapper) {
+      Specification<CabinetPaper> base, T value, Function<T, Specification<CabinetPaper>> mapper) {
     return value != null ? andSpec(base, mapper.apply(value)) : base;
   }
 

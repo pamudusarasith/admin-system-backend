@@ -26,7 +26,8 @@ public class UserController {
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "10") int pageSize,
       @RequestParam(required = false) Boolean assignableOnly) {
-    return ApiResponse.paged(userService.getUsers(query, divisionId, page, pageSize, assignableOnly));
+    return ApiResponse.paged(
+        userService.getUsers(query, divisionId, page, pageSize, assignableOnly));
   }
 
   @PostMapping("/users")

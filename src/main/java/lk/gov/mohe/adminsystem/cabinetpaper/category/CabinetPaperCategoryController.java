@@ -21,29 +21,29 @@ public class CabinetPaperCategoryController {
       @RequestParam(defaultValue = "0") Integer page,
       @RequestParam(defaultValue = "10") Integer pageSize) {
     Page<CabinetPaperCategoryDto> categories = service.getAllCategories(query, page, pageSize);
-        return ApiResponse.paged(categories);
-    }
+    return ApiResponse.paged(categories);
+  }
 
   @PostMapping("/cabinet-papers/categories")
   @PreAuthorize("hasAuthority('cabinet_paper_category:create')")
   public ApiResponse<Void> createCategory(
       @Valid @RequestBody CreateCabinetPaperCategoryRequestDto request) {
     service.createCategory(request);
-        return ApiResponse.message("Category created successfully");
-    }
+    return ApiResponse.message("Category created successfully");
+  }
 
   @PutMapping("/cabinet-papers/categories/{id}")
   @PreAuthorize("hasAuthority('cabinet_paper_category:update')")
   public ApiResponse<Void> updateCategory(
       @PathVariable Integer id, @Valid @RequestBody UpdateCabinetPaperCategoryRequestDto request) {
     service.updateCategory(id, request);
-        return ApiResponse.message("Category updated successfully");
-    }
+    return ApiResponse.message("Category updated successfully");
+  }
 
   @DeleteMapping("/cabinet-papers/categories/{id}")
   @PreAuthorize("hasAuthority('cabinet_paper_category:delete')")
   public ApiResponse<Void> deleteCategory(@PathVariable Integer id) {
-        service.deleteCategory(id);
-        return ApiResponse.message("Category deleted successfully");
-    }
+    service.deleteCategory(id);
+    return ApiResponse.message("Category deleted successfully");
+  }
 }

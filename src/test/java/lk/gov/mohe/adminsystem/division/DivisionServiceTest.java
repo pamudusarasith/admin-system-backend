@@ -80,4 +80,21 @@ class DivisionServiceTest {
         verify(divisionMapper, times(1)).dtoToDivision(createDto);
         verify(divisionRepository, times(1)).save(division);
     }
+
+    @Test
+    void createDivision_ShouldThrowConflictException_WhenNameExists() {
+        // Given: A division with the same name already exists
+        when(divisionRepository.existsByNameIgnoreCase(createDto.name())).thenReturn(true);
+
+        // When & Then: createDivision is called and it throws a ResponseStatusException
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            divisionService.createDivision(createDto);
+        });
+
+        assertEquals(409, exception.getStatusCode().value());
+        assertTrue(exception.getReason().contains("already exists"));
+        // Corrected line:
+        verify(divisionRepository, never()).save(any(Division.class));
+    }
+
 }

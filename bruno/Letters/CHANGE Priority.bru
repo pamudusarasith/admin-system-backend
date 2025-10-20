@@ -1,0 +1,20 @@
+meta {
+  name: CHANGE Priority
+  type: http
+  seq: 10
+}
+
+put {
+  url: {{base_url}}/letters/1/priority
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {"priority":"NORMAL"}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

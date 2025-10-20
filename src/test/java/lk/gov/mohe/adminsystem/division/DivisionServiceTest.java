@@ -128,4 +128,22 @@ class DivisionServiceTest {
         verify(divisionRepository, never()).save(any(Division.class));
     }
 
+    @Test
+    void updateDivision_ShouldThrowConflictException_WhenNewNameExists() {
+        // Given: An existing division is found, but the new name already exists for another division
+        CreateOrUpdateDivisionRequestDto updateDto = new CreateOrUpdateDivisionRequestDto("Existing Name", "Desc");
+        when(divisionRepository.findById(1)).thenReturn(Optional.of(division)); // division name is "Test Division"
+        when(divisionRepository.existsByNameIgnoreCase(updateDto.name())).thenReturn(true);
+
+        // When & Then: updateDivision is called and it throws a ResponseStatusException
+        assertThrows(ResponseStatusException.class, () -> {
+            divisionService.updateDivision(1, updateDto);
+        });
+
+        verify(divisionRepository, times(1)).findById(1);
+        verify(divisionRepository, times(1)).existsByNameIgnoreCase(updateDto.name());
+        // Corrected line:
+        verify(divisionRepository, never()).save(any(Division.class));
+    }
+
 }

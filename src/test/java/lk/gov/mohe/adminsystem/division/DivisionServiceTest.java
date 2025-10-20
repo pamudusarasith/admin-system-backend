@@ -48,4 +48,22 @@ class DivisionServiceTest {
         createDto = new CreateOrUpdateDivisionRequestDto("New Division", "New Description");
     }
 
+    @Test
+    void getDivisions_ShouldReturnPagedDivisionDtos() {
+        // Given: A page of divisions exists in the repository
+        Page<Division> pagedDivisions = new PageImpl<>(Collections.singletonList(division));
+        when(divisionRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(pagedDivisions);
+        when(divisionMapper.toDto(any(Division.class))).thenReturn(divisionDto);
+
+        // When: getDivisions is called
+        Page<DivisionDto> result = divisionService.getDivisions("Test", 0, 10);
+
+        // Then: The repository and mapper are called, and a page of DTOs is returned
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
+        assertEquals("Test Division", result.getContent().get(0).name());
+        verify(divisionRepository, times(1)).findAll(any(Specification.class), any(Pageable.class));
+        verify(divisionMapper, times(1)).toDto(division);
+    }
+
 }

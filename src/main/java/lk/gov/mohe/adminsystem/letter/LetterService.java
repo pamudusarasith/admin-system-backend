@@ -275,9 +275,11 @@ public class LetterService {
     } else if (oldSender == null && newSender != null) {
       // All fields are new
       if (newSender.name() != null) changedDetails.put("senderDetails.name", newSender.name());
-      if (newSender.address() != null) changedDetails.put("senderDetails.address", newSender.address());
+      if (newSender.address() != null)
+        changedDetails.put("senderDetails.address", newSender.address());
       if (newSender.email() != null) changedDetails.put("senderDetails.email", newSender.email());
-      if (newSender.phoneNumber() != null) changedDetails.put("senderDetails.phoneNumber", newSender.phoneNumber());
+      if (newSender.phoneNumber() != null)
+        changedDetails.put("senderDetails.phoneNumber", newSender.phoneNumber());
     }
 
     // Compare receiverDetails fields individually
@@ -295,15 +297,20 @@ public class LetterService {
       }
     } else if (oldReceiver == null && newReceiver != null) {
       // All fields are new
-      if (newReceiver.name() != null) changedDetails.put("receiverDetails.name", newReceiver.name());
-      if (newReceiver.designation() != null) changedDetails.put("receiverDetails.designation", newReceiver.designation());
-      if (newReceiver.divisionName() != null) changedDetails.put("receiverDetails.divisionName", newReceiver.divisionName());
+      if (newReceiver.name() != null)
+        changedDetails.put("receiverDetails.name", newReceiver.name());
+      if (newReceiver.designation() != null)
+        changedDetails.put("receiverDetails.designation", newReceiver.designation());
+      if (newReceiver.divisionName() != null)
+        changedDetails.put("receiverDetails.divisionName", newReceiver.divisionName());
     }
 
-    if (letter.getSentDate() == null || !letter.getSentDate().toString().equals(request.sentDate())) {
+    if (letter.getSentDate() == null
+        || !letter.getSentDate().toString().equals(request.sentDate())) {
       changedDetails.put("sentDate", request.sentDate());
     }
-    if (letter.getReceivedDate() == null || !letter.getReceivedDate().toString().equals(request.receivedDate())) {
+    if (letter.getReceivedDate() == null
+        || !letter.getReceivedDate().toString().equals(request.receivedDate())) {
       changedDetails.put("receivedDate", request.receivedDate());
     }
     if (!Objects.equals(letter.getModeOfArrival(), request.modeOfArrival())) {

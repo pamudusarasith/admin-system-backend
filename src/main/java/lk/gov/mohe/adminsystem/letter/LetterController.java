@@ -195,8 +195,7 @@ public class LetterController {
           + "'letter:own:manage')")
   public ApiResponse<Void> addAttachment(
       @PathVariable Integer id,
-      @RequestPart(value = "attachments",required = false)
-          MultipartFile[] attachments,
+      @RequestPart(value = "attachments", required = false) MultipartFile[] attachments,
       Authentication authentication) {
     Jwt jwt = (Jwt) authentication.getPrincipal();
     Collection<String> authorities =
@@ -205,5 +204,20 @@ public class LetterController {
     letterService.addAttachment(
         id, attachments, jwt.getClaim("userId"), jwt.getClaim("divisionId"), authorities);
     return ApiResponse.message("Attachment added successfully");
+  }
+
+  @PutMapping("/letters/{id}/priority")
+  @PreAuthorize(
+      "hasAnyAuthority('letter:all:update:priority', 'letter:unassigned:update:priority', 'letter:division:update:priority', 'letter:own:manage')")
+  public ApiResponse<Void> changePriority(
+      @PathVariable Integer id,
+      @RequestBody @Valid ChangePriorityRequestDto request,
+      Authentication authentication) {
+    Jwt jwt = (Jwt) authentication.getPrincipal();
+    Collection<String> authorities =
+        authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+    letterService.changeLetterPriority(
+        id, request.getPriority(), jwt.getClaim("userId"), jwt.getClaim("divisionId"), authorities);
+    return ApiResponse.message("Priority changed successfully");
   }
 }

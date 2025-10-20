@@ -107,6 +107,22 @@ public abstract class LetterMapper {
     String previousStatus = (String) eventDetails.get("previousStatus");
     String content = (String) eventDetails.get("content");
 
+    PriorityEnum newPriority = null;
+    Object newPriorityObj = eventDetails.get("newPriority");
+    if (newPriorityObj instanceof String) {
+      newPriority = PriorityEnum.valueOf((String) newPriorityObj);
+    } else if (newPriorityObj instanceof PriorityEnum) {
+      newPriority = (PriorityEnum) newPriorityObj;
+    }
+
+    PriorityEnum previousPriority = null;
+    Object previousPriorityObj = eventDetails.get("previousPriority");
+    if (previousPriorityObj instanceof String) {
+      previousPriority = PriorityEnum.valueOf((String) previousPriorityObj);
+    } else if (previousPriorityObj instanceof PriorityEnum) {
+      previousPriority = (PriorityEnum) previousPriorityObj;
+    }
+
     List<AttachmentDto> attachments = null;
     Object attachmentsObj = eventDetails.get("attachments");
     if (attachmentsObj instanceof List<?>) {
@@ -129,6 +145,15 @@ public abstract class LetterMapper {
 
     String reason = (String) eventDetails.get("reason");
 
-    return new EventDetailsDto(newStatus, previousStatus, content, attachments, division, user, reason);
+    return new EventDetailsDto(
+        newStatus,
+        previousStatus,
+        newPriority,
+        previousPriority,
+        content,
+        attachments,
+        division,
+        user,
+        reason);
   }
 }

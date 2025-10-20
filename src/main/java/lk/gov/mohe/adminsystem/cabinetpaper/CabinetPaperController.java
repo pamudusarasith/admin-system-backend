@@ -41,4 +41,21 @@ public class CabinetPaperController {
     return ResponseEntity.created(URI.create("/cabinet-papers/" + paper.getId()))
         .body(ApiResponse.message("Cabinet paper created successfully"));
   }
+
+  @PutMapping(value = "/cabinet-papers/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  @PreAuthorize("hasAuthority('cabinet:update')")
+  public ApiResponse<Void> updateCabinetPaper(
+      @PathVariable Integer id,
+      @Valid @RequestPart("details") UpdateCabinetPaperRequestDto request,
+      @RequestPart(value = "attachments", required = false) MultipartFile[] attachments) {
+    cabinetPaperService.updateCabinetPaper(id, request, attachments);
+    return ApiResponse.message("Cabinet paper updated successfully");
+  }
+
+  @DeleteMapping("/cabinet-papers/{id}")
+  @PreAuthorize("hasAuthority('cabinet:delete')")
+  public ApiResponse<Void> deleteCabinetPaper(@PathVariable Integer id) {
+    cabinetPaperService.deleteCabinetPaper(id);
+    return ApiResponse.message("Cabinet paper deleted successfully");
+  }
 }

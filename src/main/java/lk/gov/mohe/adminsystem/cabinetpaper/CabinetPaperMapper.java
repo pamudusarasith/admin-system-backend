@@ -40,4 +40,14 @@ public abstract class CabinetPaperMapper {
 
   // Map create request -> entity (category and submittedByUser handled in service)
   public abstract CabinetPaper toEntity(CreateCabinetPaperRequestDto request);
+
+  // Update entity from request (category handled in service)
+  @Mapping(target = "id", ignore = true)
+  @Mapping(target = "category", ignore = true)
+  @Mapping(target = "submittedByUser", ignore = true)
+  @Mapping(target = "createdAt", ignore = true)
+  @Mapping(target = "updatedAt", ignore = true)
+  @Mapping(target = "deletedAt", ignore = true)
+  public abstract void updateEntityFromDto(
+      UpdateCabinetPaperRequestDto request, @MappingTarget CabinetPaper cabinetPaper);
 }

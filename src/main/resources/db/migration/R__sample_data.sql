@@ -99,6 +99,8 @@ VALUES ('user:read', 'Read Users', 'Permission to read user information', 1),
 
        ('cabinet:read', 'Read Cabinet Papers', 'Permission to read cabinet papers', 14),
        ('cabinet:create', 'Create Cabinet Papers', 'Permission to create new cabinet papers', 14),
+       ('cabinet:update', 'Update Cabinet Papers', 'Permission to update existing cabinet papers', 14),
+       ('cabinet:delete', 'Delete Cabinet Papers', 'Permission to delete cabinet papers', 14),
 
        ('cabinet_paper_category:read', 'Read Cabinet Paper Categories', 'Permission to read cabinet paper categories', 15),
        ('cabinet_paper_category:create', 'Create Cabinet Paper Categories', 'Permission to create new cabinet paper categories', 15),
@@ -133,7 +135,8 @@ SELECT r.id, p.id
 FROM roles r
          CROSS JOIN permissions p
 WHERE r.name = 'POSTAL_OFFICER'
-  AND p.name IN ('letter:unassigned:read', 'letter:unassigned:update', 'letter:create', 'letter:assign:division', 'cabinet:read', 'cabinet:create');
+  AND p.name IN ('letter:unassigned:read', 'letter:unassigned:update', 'letter:create', 'letter:assign:division', 
+                 'cabinet:read', 'cabinet:create', 'cabinet:update', 'cabinet:delete');
 
 -- =================================================================
 -- Insert Divisions

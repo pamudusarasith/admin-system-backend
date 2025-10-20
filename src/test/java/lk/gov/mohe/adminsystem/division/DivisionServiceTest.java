@@ -159,4 +159,18 @@ class DivisionServiceTest {
         verify(divisionRepository, times(1)).delete(division);
     }
 
+    @Test
+    void deleteDivision_ShouldThrowNotFoundException_WhenDivisionDoesNotExist() {
+        // Given: No division exists for the given ID
+        when(divisionRepository.findById(1)).thenReturn(Optional.empty());
+
+        // When & Then: deleteDivision is called and it throws a ResponseStatusException
+        assertThrows(ResponseStatusException.class, () -> {
+            divisionService.deleteDivision(1);
+        });
+
+        verify(divisionRepository, times(1)).findById(1);
+        // This is the line you correctly identified as an error. Now it's fixed.
+        verify(divisionRepository, never()).delete(any(Division.class));
+    }
 }

@@ -77,5 +77,4 @@ class EmailServiceTest {
         // To assert the content, we'd need a real MimeMessage instance.
         // A more complex setup would be needed for that, but this verifies the core logic.
     }
-    }
 }

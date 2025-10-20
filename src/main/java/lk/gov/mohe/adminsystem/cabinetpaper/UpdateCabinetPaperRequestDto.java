@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-public record CreateCabinetPaperRequestDto(
+public record UpdateCabinetPaperRequestDto(
     @NotBlank(message = "Reference ID is required") @Size(max = 50) String referenceId,
     @NotBlank(message = "Subject is required") @Size(max = 255) String subject,
     String summary,

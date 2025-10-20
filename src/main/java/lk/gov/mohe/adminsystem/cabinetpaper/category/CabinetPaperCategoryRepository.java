@@ -1,4 +1,4 @@
-package lk.gov.mohe.adminsystem.cabinetpaper;
+package lk.gov.mohe.adminsystem.cabinetpaper.category;
 
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -9,6 +9,8 @@ public interface CabinetPaperCategoryRepository
     extends JpaRepository<CabinetPaperCategory, Integer> {
 
   boolean existsByName(String name);
+
+  boolean existsByNameAndIdNot(String name, Integer id);
 
   Optional<CabinetPaperCategory> findByName(String name);
 

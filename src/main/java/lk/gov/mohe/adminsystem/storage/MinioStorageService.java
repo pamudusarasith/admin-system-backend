@@ -4,6 +4,7 @@ import io.minio.BucketExistsArgs;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
+import io.minio.RemoveObjectArgs;
 import java.io.InputStream;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -67,6 +68,21 @@ public class MinioStorageService {
       log.error("Failed to generate a URL for object: {}", objectName, e);
       throw new ResponseStatusException(
           HttpStatus.INTERNAL_SERVER_ERROR, "Failed to generate a URL");
+    }
+  }
+
+  public void delete(String objectName) {
+    try {
+      minioClient.removeObject(
+          RemoveObjectArgs.builder()
+              .bucket(bucket)
+              .object(objectName)
+              .build());
+      log.info("Successfully deleted object: {}", objectName);
+    } catch (Exception e) {
+      log.error("Failed to delete object: {}", objectName, e);
+      throw new ResponseStatusException(
+          HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete file from storage");
     }
   }
 

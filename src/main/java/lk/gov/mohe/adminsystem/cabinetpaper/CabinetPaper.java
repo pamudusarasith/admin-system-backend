@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Size;
 import java.time.Instant;
 import lk.gov.mohe.adminsystem.attachment.AttachmentParent;
 import lk.gov.mohe.adminsystem.attachment.ParentTypeEnum;
+import lk.gov.mohe.adminsystem.cabinetpaper.category.CabinetPaperCategory;
 import lk.gov.mohe.adminsystem.user.User;
 import lombok.Getter;
 import lombok.Setter;

@@ -1,4 +1,4 @@
-package lk.gov.mohe.adminsystem.cabinetpaper;
+package lk.gov.mohe.adminsystem.cabinetpaper.category;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;

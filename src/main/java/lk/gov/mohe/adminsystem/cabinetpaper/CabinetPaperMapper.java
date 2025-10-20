@@ -1,5 +1,7 @@
 package lk.gov.mohe.adminsystem.cabinetpaper;
 
+import lk.gov.mohe.adminsystem.cabinetpaper.category.CabinetPaperCategory;
+import lk.gov.mohe.adminsystem.cabinetpaper.category.CabinetPaperCategoryDto;
 import lk.gov.mohe.adminsystem.user.UserMapper;
 import org.mapstruct.*;
 import org.springframework.lang.Nullable;

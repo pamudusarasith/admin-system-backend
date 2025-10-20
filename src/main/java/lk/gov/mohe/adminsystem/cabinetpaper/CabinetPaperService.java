@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Set;
 import lk.gov.mohe.adminsystem.attachment.Attachment;
 import lk.gov.mohe.adminsystem.attachment.AttachmentRepository;
+import lk.gov.mohe.adminsystem.cabinetpaper.category.CabinetPaperCategory;
+import lk.gov.mohe.adminsystem.cabinetpaper.category.CabinetPaperCategoryRepository;
 import lk.gov.mohe.adminsystem.security.CurrentUserProvider;
 import lk.gov.mohe.adminsystem.storage.MinioStorageService;
 import lk.gov.mohe.adminsystem.user.User;

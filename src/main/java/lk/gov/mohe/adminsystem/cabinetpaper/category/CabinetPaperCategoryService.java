@@ -1,13 +1,13 @@
-package lk.gov.mohe.adminsystem.cabinetpaper;
+package lk.gov.mohe.adminsystem.cabinetpaper.category;
 
+import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import lombok.RequiredArgsConstructor;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor

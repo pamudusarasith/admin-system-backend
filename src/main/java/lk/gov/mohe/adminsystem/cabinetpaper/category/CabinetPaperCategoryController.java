@@ -1,4 +1,4 @@
-package lk.gov.mohe.adminsystem.cabinetpaper;
+package lk.gov.mohe.adminsystem.cabinetpaper.category;
 
 import jakarta.validation.Valid;
 import java.util.List;

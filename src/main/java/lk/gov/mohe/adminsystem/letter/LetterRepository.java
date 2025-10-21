@@ -52,6 +52,9 @@ public interface LetterRepository
   @Query("SELECT COUNT(l) FROM Letter l WHERE l.assignedUser.id = :userId")
   long countByAssignedUserId(Integer userId);
 
+  @Query("SELECT COUNT(l) FROM Letter l WHERE l.assignedUser.id = :userId")
+  long countActiveLettersByUserId(Integer userId);
+
   @Query(
       "SELECT l.status, COUNT(l) FROM Letter l WHERE l.assignedUser.id = :userId GROUP BY"
           + " l.status")

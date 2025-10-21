@@ -17,7 +17,6 @@ public record UserUpdateRequestDto(
         @Pattern(regexp = "\\d{10}", message = "Phone number must be 10 digits")
         @JsonProperty("phoneNumber")
         String phoneNumber,
-    @NotNull(message = "Role must not be null") @JsonProperty("role") String role,
-    @NotNull(message = "Division must not be null") @JsonProperty("division") String division,
-    @NotNull(message = "Active status must not be null") @JsonProperty("isActive")
-        Boolean isActive) {}
+    @NotNull(message = "Role ID must not be null") @JsonProperty("roleId") Integer roleId,
+    @NotNull(message = "Division ID must not be null") @JsonProperty("divisionId")
+        Integer divisionId) {}

@@ -173,121 +173,121 @@ VALUES
 
 -- Administrators
 ('admin', 'admin@mohe.gov.lk', '$2a$10$Flj/pK//deNj6bQgVBzkv.q.K//M0tcMRFHcWVxcZKp5Q9W5QjBjK', 'System Administrator',
- '+94771234568',
+ '0771234568',
  (SELECT id FROM roles WHERE name = 'ADMIN'),
  (SELECT id FROM divisions WHERE name = 'IT Division'),
  true, false),
 
 ('hr.admin', 'hradmin@mohe.gov.lk', '$2a$10$Flj/pK//deNj6bQgVBzkv.q.K//M0tcMRFHcWVxcZKp5Q9W5QjBjK', 'HR Administrator',
- '+94771234569',
+ '0771234569',
  (SELECT id FROM roles WHERE name = 'ADMIN'),
  (SELECT id FROM divisions WHERE name = 'HR Division'),
  true, false),
 
 -- Postal Officers
 ('postal.officer1', 'postal1@mohe.gov.lk', '$2a$10$Flj/pK//deNj6bQgVBzkv.q.K//M0tcMRFHcWVxcZKp5Q9W5QjBjK',
- 'Kumari Silva', '+94771234570',
+ 'Kumari Silva', '0771234570',
  (SELECT id FROM roles WHERE name = 'POSTAL_OFFICER'),
  (SELECT id FROM divisions WHERE name = 'Administration Division'),
  true, false),
 
 ('postal.officer2', 'postal2@mohe.gov.lk', '$2a$10$Flj/pK//deNj6bQgVBzkv.q.K//M0tcMRFHcWVxcZKp5Q9W5QjBjK',
- 'Nimal Perera', '+94771234571',
+ 'Nimal Perera', '0771234571',
  (SELECT id FROM roles WHERE name = 'POSTAL_OFFICER'),
  (SELECT id FROM divisions WHERE name = 'Administration Division'),
  true, false),
 
 -- Division Heads
 ('it.head', 'ithead@mohe.gov.lk', '$2a$10$Flj/pK//deNj6bQgVBzkv.q.K//M0tcMRFHcWVxcZKp5Q9W5QjBjK', 'Dr. Kamal Rajapaksa',
- '+94771234572',
+ '0771234572',
  (SELECT id FROM roles WHERE name = 'DIVISION_HEAD'),
  (SELECT id FROM divisions WHERE name = 'IT Division'),
  true, false),
 
 ('finance.head', 'finhead@mohe.gov.lk', '$2a$10$Flj/pK//deNj6bQgVBzkv.q.K//M0tcMRFHcWVxcZKp5Q9W5QjBjK',
- 'Mrs. Sunitha Fernando', '+94771234573',
+ 'Mrs. Sunitha Fernando', '0771234573',
  (SELECT id FROM roles WHERE name = 'DIVISION_HEAD'),
  (SELECT id FROM divisions WHERE name = 'Finance Division'),
  true, false),
 
 ('legal.head', 'legalhead@mohe.gov.lk', '$2a$10$Flj/pK//deNj6bQgVBzkv.q.K//M0tcMRFHcWVxcZKp5Q9W5QjBjK',
- 'Mr. Chaminda Wickramasinghe', '+94771234574',
+ 'Mr. Chaminda Wickramasinghe', '0771234574',
  (SELECT id FROM roles WHERE name = 'DIVISION_HEAD'),
  (SELECT id FROM divisions WHERE name = 'Legal Division'),
  true, false),
 
 ('policy.head', 'policyhead@mohe.gov.lk', '$2a$10$Flj/pK//deNj6bQgVBzkv.q.K//M0tcMRFHcWVxcZKp5Q9W5QjBjK',
- 'Prof. Manjula Weerasinghe', '+94771234575',
+ 'Prof. Manjula Weerasinghe', '0771234575',
  (SELECT id FROM roles WHERE name = 'DIVISION_HEAD'),
  (SELECT id FROM divisions WHERE name = 'Policy Division'),
  true, false),
 
 -- Subject Officers
 ('finance.officer1', 'finoff1@mohe.gov.lk', '$2a$10$Flj/pK//deNj6bQgVBzkv.q.K//M0tcMRFHcWVxcZKp5Q9W5QjBjK',
- 'Ruwan Jayawardena', '+94771234576',
+ 'Ruwan Jayawardena', '0771234576',
  (SELECT id FROM roles WHERE name = 'SUBJECT_OFFICER'),
  (SELECT id FROM divisions WHERE name = 'Finance Division'),
  true, false),
 
 ('legal.officer1', 'legaloff1@mohe.gov.lk', '$2a$10$Flj/pK//deNj6bQgVBzkv.q.K//M0tcMRFHcWVxcZKp5Q9W5QjBjK',
- 'Priyanka Rathnayake', '+94771234577',
+ 'Priyanka Rathnayake', '0771234577',
  (SELECT id FROM roles WHERE name = 'SUBJECT_OFFICER'),
  (SELECT id FROM divisions WHERE name = 'Legal Division'),
  true, false),
 
 ('policy.officer1', 'policyoff1@mohe.gov.lk', '$2a$10$Flj/pK//deNj6bQgVBzkv.q.K//M0tcMRFHcWVxcZKp5Q9W5QjBjK',
- 'Sandun Amarasinghe', '+94771234578',
+ 'Sandun Amarasinghe', '0771234578',
  (SELECT id FROM roles WHERE name = 'SUBJECT_OFFICER'),
  (SELECT id FROM divisions WHERE name = 'Policy Division'),
  true, false),
 
 ('research.officer1', 'resoff1@mohe.gov.lk', '$2a$10$Flj/pK//deNj6bQgVBzkv.q.K//M0tcMRFHcWVxcZKp5Q9W5QjBjK',
- 'Dr. Nilmini Gunawardena', '+94771234579',
+ 'Dr. Nilmini Gunawardena', '0771234579',
  (SELECT id FROM roles WHERE name = 'SUBJECT_OFFICER'),
  (SELECT id FROM divisions WHERE name = 'Research Division'),
  true, false),
 
 ('it.officer1', 'itoff1@mohe.gov.lk', '$2a$10$Flj/pK//deNj6bQgVBzkv.q.K//M0tcMRFHcWVxcZKp5Q9W5QjBjK',
- 'Tharindu Wijesinghe', '+94771234580',
+ 'Tharindu Wijesinghe', '0771234580',
  (SELECT id FROM roles WHERE name = 'SUBJECT_OFFICER'),
  (SELECT id FROM divisions WHERE name = 'IT Division'),
  true, false),
 
 -- Clerks
 ('admin.clerk1', 'clerk1@mohe.gov.lk', '$2a$10$Flj/pK//deNj6bQgVBzkv.q.K//M0tcMRFHcWVxcZKp5Q9W5QjBjK', 'Saman Kumara',
- '+94771234581',
+ '0771234581',
  (SELECT id FROM roles WHERE name = 'CLERK'),
  (SELECT id FROM divisions WHERE name = 'Administration Division'),
  true, false),
 
 ('admin.clerk2', 'clerk2@mohe.gov.lk', '$2a$10$Flj/pK//deNj6bQgVBzkv.q.K//M0tcMRFHcWVxcZKp5Q9W5QjBjK', 'Chamila Perera',
- '+94771234582',
+ '0771234582',
  (SELECT id FROM roles WHERE name = 'CLERK'),
  (SELECT id FROM divisions WHERE name = 'Administration Division'),
  true, false),
 
 ('hr.clerk1', 'hrclerk1@mohe.gov.lk', '$2a$10$Flj/pK//deNj6bQgVBzkv.q.K//M0tcMRFHcWVxcZKp5Q9W5QjBjK',
- 'Anura Dissanayake', '+94771234583',
+ 'Anura Dissanayake', '0771234583',
  (SELECT id FROM roles WHERE name = 'CLERK'),
  (SELECT id FROM divisions WHERE name = 'HR Division'),
  true, false),
 
 -- Read-only users
 ('auditor', 'auditor@mohe.gov.lk', '$2a$10$Flj/pK//deNj6bQgVBzkv.q.K//M0tcMRFHcWVxcZKp5Q9W5QjBjK', 'Internal Auditor',
- '+94771234584',
+ '0771234584',
  (SELECT id FROM roles WHERE name = 'READ_ONLY'),
  (SELECT id FROM divisions WHERE name = 'Audit Division'),
  true, false),
 
 ('guest.user', 'guest@mohe.gov.lk', '$2a$10$Flj/pK//deNj6bQgVBzkv.q.K//M0tcMRFHcWVxcZKp5Q9W5QjBjK', 'Guest User',
- '+94771234585',
+ '0771234585',
  (SELECT id FROM roles WHERE name = 'READ_ONLY'),
  (SELECT id FROM divisions WHERE name = 'Administration Division'),
  true, true),
 
 -- Inactive user for testing
 ('inactive.user', 'inactive@mohe.gov.lk', '$2a$10$Flj/pK//deNj6bQgVBzkv.q.K//M0tcMRFHcWVxcZKp5Q9W5QjBjK',
- 'Inactive Test User', '+94771234586',
+ 'Inactive Test User', '0771234586',
  (SELECT id FROM roles WHERE name = 'CLERK'),
  (SELECT id FROM divisions WHERE name = 'Administration Division'),
  false, false);

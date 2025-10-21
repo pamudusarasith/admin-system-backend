@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -56,7 +57,12 @@ public class UserService {
 
   @Transactional(readOnly = true)
   public Page<UserDto> getUsers(UserSearchParams searchParams) {
-    Pageable pageable = PageRequest.of(searchParams.getPage(), searchParams.getPageSize());
+    // Create sort with explicit ordering by id
+    Sort sort = Sort.by(Sort.Order.asc("id"));
+    Pageable pageable = PageRequest.of(
+        searchParams.getPage(), 
+        searchParams.getPageSize(),
+        sort);
     Specification<User> spec = buildSearchSpec(searchParams);
     
     // Use a specification that matches all if spec is null
@@ -167,6 +173,12 @@ public class UserService {
 
   @Transactional
   public void updateUser(Integer id, UserUpdateRequestDto request) {
+    // Validate id
+    if (id == null || id <= 0) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid user ID");
+    }
+
+    // Find user
     User user =
         userRepository
             .findById(id)
@@ -184,30 +196,29 @@ public class UserService {
       throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already exists");
     }
 
-    // Validate and fetch role
+    // Validate and fetch role by ID
     Role role =
         roleRepository
-            .findByName(request.role())
+            .findById(request.roleId())
             .orElseThrow(
                 () ->
                     new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST, "Role not found: " + request.role()));
+                        HttpStatus.BAD_REQUEST, "Role not found with ID: " + request.roleId()));
 
-    // Validate and fetch division
+    // Validate and fetch division by ID
     Division division =
         divisionRepository
-            .findByName(request.division())
+            .findById(request.divisionId())
             .orElseThrow(
                 () ->
                     new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST, "Division not found: " + request.division()));
+                        HttpStatus.BAD_REQUEST, "Division not found with ID: " + request.divisionId()));
 
     // Update user fields
     user.setUsername(request.username());
     user.setEmail(request.email());
     user.setFullName(request.fullName());
     user.setPhoneNumber(request.phoneNumber());
-    user.setIsActive(request.isActive());
     user.setRole(role);
     user.setDivision(division);
 
@@ -224,7 +235,7 @@ public class UserService {
     // Prevent self-deletion
     if (id.equals(currentUserId)) {
       throw new ResponseStatusException(
-          HttpStatus.FORBIDDEN, "Cannot delete your own account");
+          HttpStatus.BAD_REQUEST, "Cannot delete your own account");
     }
 
     // Find user

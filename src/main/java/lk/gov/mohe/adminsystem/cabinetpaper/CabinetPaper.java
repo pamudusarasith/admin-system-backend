@@ -7,6 +7,7 @@ import java.time.Instant;
 import lk.gov.mohe.adminsystem.attachment.AttachmentParent;
 import lk.gov.mohe.adminsystem.attachment.ParentTypeEnum;
 import lk.gov.mohe.adminsystem.cabinetpaper.category.CabinetPaperCategory;
+import lk.gov.mohe.adminsystem.cabinetpaper.decision.CabinetDecision;
 import lk.gov.mohe.adminsystem.user.User;
 import lombok.Getter;
 import lombok.Setter;
@@ -49,6 +50,9 @@ public class CabinetPaper implements AttachmentParent {
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "submitted_by_user_id", nullable = false)
   private User submittedByUser;
+
+  @OneToOne(mappedBy = "paper", fetch = FetchType.LAZY)
+  private CabinetDecision decision;
 
   @Column(name = "created_at")
   private Instant createdAt;

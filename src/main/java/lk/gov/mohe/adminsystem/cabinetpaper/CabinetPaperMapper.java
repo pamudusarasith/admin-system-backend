@@ -7,6 +7,7 @@ import lk.gov.mohe.adminsystem.attachment.AttachmentRepository;
 import lk.gov.mohe.adminsystem.attachment.ParentTypeEnum;
 import lk.gov.mohe.adminsystem.cabinetpaper.category.CabinetPaperCategory;
 import lk.gov.mohe.adminsystem.cabinetpaper.category.CabinetPaperCategoryDto;
+import lk.gov.mohe.adminsystem.cabinetpaper.decision.CabinetDecisionMapper;
 import lk.gov.mohe.adminsystem.user.UserMapper;
 import org.mapstruct.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +16,7 @@ import org.springframework.lang.Nullable;
 @Mapper(
     unmappedTargetPolicy = ReportingPolicy.IGNORE,
     componentModel = MappingConstants.ComponentModel.SPRING,
-    uses = {UserMapper.class, AttachmentMapper.class})
+    uses = {UserMapper.class, AttachmentMapper.class, CabinetDecisionMapper.class})
 public abstract class CabinetPaperMapper {
   @Autowired protected AttachmentRepository attachmentRepository;
   ParentTypeEnum cabinetPaperParentType = ParentTypeEnum.CABINET_PAPER;
@@ -26,6 +27,7 @@ public abstract class CabinetPaperMapper {
       expression =
           "java( attachmentRepository.countByParentIdAndParentType(cabinetPaper.getId(), cabinetPaperParentType) )")
   @Mapping(target = "attachments", ignore = true)
+  @Mapping(target = "decision", ignore = true)
   public abstract CabinetPaperDto toCabinetPaperDtoMin(CabinetPaper cabinetPaper);
 
   @Mapping(
@@ -33,6 +35,7 @@ public abstract class CabinetPaperMapper {
       target = "submittedByUser",
       qualifiedByName = "toUserDtoMin")
   @Mapping(target = "noOfAttachments", ignore = true)
+  @Mapping(source = "cabinetPaper.decision", target = "decision")
   public abstract CabinetPaperDto toCabinetPaperDtoFull(
       CabinetPaper cabinetPaper, List<Attachment> attachments);
 

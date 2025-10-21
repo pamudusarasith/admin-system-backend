@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 import lk.gov.mohe.adminsystem.attachment.AttachmentDto;
 import lk.gov.mohe.adminsystem.cabinetpaper.category.CabinetPaperCategoryDto;
+import lk.gov.mohe.adminsystem.cabinetpaper.decision.CabinetDecisionDto;
 import lk.gov.mohe.adminsystem.user.UserDto;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -17,5 +18,6 @@ public record CabinetPaperDto(
     UserDto submittedByUser,
     Long noOfAttachments,
     List<AttachmentDto> attachments,
+    CabinetDecisionDto decision,
     String createdAt,
     String updatedAt) {}
